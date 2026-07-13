@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Producto {
+  id             Int            @id @default(autoincrement())
+  codigo         String         @unique
+  nombre         String         @unique
+  precioVenta    Int
+  stock          Int
+  activo         Boolean        @default(true)
+  detalleVentas  DetalleVenta[]
+  detalleCompras DetalleCompra[]
+
+  @@map("productos")
+}
+
+model Rol {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
+  activo Boolean @default(true)
+
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id         Int     @id @default(autoincrement())
+  nombre     String
+  apellido   String
+  correo     String  @unique
+  contrasena String
+  activo     Boolean @default(true)
+
+  rolId  Int
+  rol    Rol       @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  ventas Venta[]
+  compras Compra[]
+
+  @@map("usuarios")
+}
+
+model Venta {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @default(now())
+  total     Int
+  activo    Boolean  @default(true)
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  detalles DetalleVenta[]
+
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  id Int @id @default(autoincrement())
+
+  ventaId Int
+  venta   Venta @relation(fields: [ventaId], references: [id], onDelete: Restrict)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  cantidad       Int
+  precioUnitario Int @map("preciounitario")
+  subtotal       Int
+
+  @@map("detalle_ventas")
+}
+
+model Proveedor {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  nit       String?  @unique
+  telefono  String?
+  correo    String?
+  direccion String?
+  activo    Boolean  @default(true)
+
+  compras Compra[]
+
+  @@map("proveedores")
+}
+
+model Compra {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @default(now())
+  total     Int
+  activo    Boolean  @default(true)
+
+  proveedorId Int
+  proveedor   Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Restrict)
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  detalles DetalleCompra[]
+
+  @@map("compras")
+}
+
+model DetalleCompra {
+  id Int @id @default(autoincrement())
+
+  compraId Int
+  compra   Compra @relation(fields: [compraId], references: [id], onDelete: Restrict)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  cantidad     Int
+  precioCompra Int
+  subtotal     Int
+
+  @@map("detalle_compras")
+}
+
+model Empresa {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  nit       String? @unique
+  direccion String?
+  telefono  String?
+  correo    String?
+  logo      String?
+  ciudad    String?
+  activo    Boolean @default(true)
+
+  @@map("empresas")
+}

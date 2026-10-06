@@ -2,8 +2,8 @@ import { CreateUsuarioDTO, UpdateUsuarioDTO } from "./usuarios.dto";
 import { prisma } from "../../config/prisma";
 import bcrypt from 'bcrypt';
 
-export const crearUsuario = async (data: CreateUsuarioDTO) => {
-    const { nombre, apellido, correo, contrasena, rolId } = data;
+export const crearUsuario = async (data: CreateUsuarioDTO, rolIdCreator: number, empresaIdCreator: number | null) => {
+    const { nombre, apellido, correo, contrasena, rolId, empresaId } = data as any;
 
     if (!nombre || !apellido || !correo || !contrasena || !rolId) {
         throw new Error("Todos los campos son obligatorios");
@@ -45,6 +45,14 @@ export const crearUsuario = async (data: CreateUsuarioDTO) => {
         throw new Error("El rol no existe o está inactivo");
     }
     
+    // Asignación de empresa
+    let empresaAsignada = null;
+    if (rolIdCreator === 1) { // Admin global puede elegir
+        empresaAsignada = empresaId || null;
+    } else { // Usuarios regulares crean dentro de su propia empresa
+        empresaAsignada = empresaIdCreator;
+    }
+
     const contrasenaHash = await bcrypt.hash(contrasenaLimpia, 10);
 
     const usuarioCreado = await prisma.usuario.create({
@@ -53,7 +61,8 @@ export const crearUsuario = async (data: CreateUsuarioDTO) => {
             apellido: apellidoLimpio,
             correo: correoLimpio,
             contrasena: contrasenaHash,
-            rolId
+            rolId,
+            empresaId: empresaAsignada
         }
     });
 
@@ -63,18 +72,35 @@ export const crearUsuario = async (data: CreateUsuarioDTO) => {
     apellido: usuarioCreado.apellido,
     correo: usuarioCreado.correo,
     rolId: usuarioCreado.rolId,
+    empresaId: usuarioCreado.empresaId,
     activo: usuarioCreado.activo
     };
 }
 
-export const obtenerUsuarios = async () => {
+export const obtenerUsuarios = async (rolId: number, empresaId: number | null) => {
+    let whereClause = {};
+    // Si no es el Administrador Maestro (rolId = 1), filtramos por su empresa
+    if (rolId !== 1) {
+        if (!empresaId) {
+            throw new Error("El usuario no pertenece a ninguna empresa");
+        }
+        whereClause = { empresaId };
+    }
+
     return await prisma.usuario.findMany({
+        where: whereClause,
         select: {
             id: true,
             nombre: true,
             apellido: true,
             correo: true,
             activo: true,
+            empresaId: true,
+            empresa: {
+                select: {
+                    nombre: true
+                }
+            },
             rol: {
                 select: {
                     id: true,

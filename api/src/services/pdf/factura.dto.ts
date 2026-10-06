@@ -1,19 +1,19 @@
 export interface FacturaVentaDTO {
     empresa: {
-        nombre: string;
-        nit: string;
-        direccion: string;
-        telefono: string;
-        correo: string;
-        ciudad: string;
-        logo: string | null;
+        nombre: string | null;
+        nit?: string | null;
+        direccion?: string | null;
+        telefono?: string | null;
+        correo?: string | null;
+        ciudad?: string | null;
+        logo?: string | null;
     };
 
     venta: {
         id: number;
         numeroFactura: string;
         fecha: Date;
-        cliente?: string;
+        cliente: string | "Consumidor Final";
         vendedor: string
     };
 
@@ -25,6 +25,7 @@ export interface FacturaVentaDTO {
     }[];
 
     totales: {
+        moneda: "COP",
         subtotal: number;
         descuentos: number;
         impuestos: number;

@@ -6,4 +6,5 @@ export interface UpdateEmpresaDTO {
     direccion?: string;
     ciudad?: string;
     logo?: string;
+    configuracion?: any;
 }

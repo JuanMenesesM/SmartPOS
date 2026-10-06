@@ -4,7 +4,8 @@ import { MESSAGES } from "../../utils/constants";
 
 export const crearUsuario = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const usuario = await usuariosService.crearUsuario(req.body);
+    const user = (req as any).user;
+    const usuario = await usuariosService.crearUsuario(req.body, user.rolId, user.empresaId);
     return res.status(201).json({
       message: MESSAGES.SUCCESS.USUARIO_CREADO,
       usuario
@@ -16,7 +17,8 @@ export const crearUsuario = async (req: Request, res: Response, next: NextFuncti
 
 export const obtenerUsuarios = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const usuarios = await usuariosService.obtenerUsuarios();
+    const user = (req as any).user;
+    const usuarios = await usuariosService.obtenerUsuarios(user.rolId, user.empresaId);
     return res.json(usuarios);
   } catch (error) {
     next(error);

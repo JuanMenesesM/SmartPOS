@@ -5,6 +5,8 @@ export interface DetalleVentaDTO {
 
 export interface CreateVentaDTO {
     productos: DetalleVentaDTO[];
+    metodoPago?: "EFECTIVO" | "TRANSFERENCIA";
+    referencia?: string;
 }
 
 export interface DetalleCalculado {
@@ -12,10 +14,13 @@ export interface DetalleCalculado {
     cantidad: number;
     precioUnitario: number;
     subtotal: number;
+    stockAnterior: number;
+    stockNuevo: number;
 }
 
 export interface FiltrosVentaDTO {
     fechaInicio?: string;
     fechaFin?: string;
     usuarioId?: number;
+    empresaId?: number;
 }

@@ -3,6 +3,15 @@ export interface VentaCreadaEvent {
     usuarioId: number;
     total: number;
     fecha: Date;
+
+    productos: {
+        productoId: number;
+        cantidad: number;
+        precioUnitario: number;
+        subtotal: number;
+        stockAnterior: number;
+        stockNuevo: number;
+    }[];
 }
 
 export interface CompraCreadaEvent {

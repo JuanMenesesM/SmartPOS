@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Empresa {
+  id           Int     @id @default(autoincrement())
+  nombre       String
+  nit          String? @unique
+  direccion    String?
+  telefono     String?
+  correo       String?
+  logo         String?
+  ciudad       String?
+  configuracion Json?   @default("{}")
+  activo       Boolean @default(true)
+  licenciaActiva Boolean @default(true)
+
+  usuarios      Usuario[]
+  productos     Producto[]
+  ventas        Venta[]
+  compras       Compra[]
+  proveedores   Proveedor[]
+  auditorias    Auditoria[]
+  movimientos   MovimientoInventario[]
+
+  @@map("empresas")
+}
+
 model Producto {
   id             Int            @id @default(autoincrement())
   codigo         String         @unique
@@ -14,8 +38,13 @@ model Producto {
   precioVenta    Int
   stock          Int
   activo         Boolean        @default(true)
+  
+  empresaId      Int?
+  empresa        Empresa?       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
   detalleVentas  DetalleVenta[]
   detalleCompras DetalleCompra[]
+  movimientos    MovimientoInventario[]
 
   @@map("productos")
 }
@@ -38,10 +67,16 @@ model Usuario {
   contrasena String
   activo     Boolean @default(true)
 
-  rolId  Int
-  rol    Rol       @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  ventas Venta[]
-  compras Compra[]
+  rolId      Int
+  rol        Rol       @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  
+  empresaId  Int?
+  empresa    Empresa?  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  ventas     Venta[]
+  compras    Compra[]
+  auditorias Auditoria[]
+  movimientosInventario MovimientoInventario[]
 
   @@map("usuarios")
 }
@@ -51,9 +86,14 @@ model Venta {
   fecha     DateTime @default(now())
   total     Int
   activo    Boolean  @default(true)
+  metodoPago String  @default("EFECTIVO")
+  referencia String?
 
   usuarioId Int
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  empresaId Int?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   detalles DetalleVenta[]
 
@@ -85,6 +125,9 @@ model Proveedor {
   direccion String?
   activo    Boolean  @default(true)
 
+  empresaId Int?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
   compras Compra[]
 
   @@map("proveedores")
@@ -101,6 +144,9 @@ model Compra {
 
   usuarioId Int
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  empresaId Int?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   detalles DetalleCompra[]
 
@@ -123,16 +169,54 @@ model DetalleCompra {
   @@map("detalle_compras")
 }
 
-model Empresa {
-  id        Int     @id @default(autoincrement())
-  nombre    String
-  nit       String? @unique
-  direccion String?
-  telefono  String?
-  correo    String?
-  logo      String?
-  ciudad    String?
-  activo    Boolean @default(true)
+model Auditoria {
+  id          Int      @id @default(autoincrement())
+  fecha       DateTime @default(now())
 
-  @@map("empresas")
+  usuarioId   Int
+  usuario     Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  empresaId   Int?
+  empresa     Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  modulo      String
+  accion      String
+  descripcion String
+
+  @@map("auditoria")
+}
+
+model MovimientoInventario {
+  id             Int      @id @default(autoincrement())
+  fecha          DateTime @default(now())
+
+  productoId     Int
+  producto       Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  usuarioId      Int
+  usuario        Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  empresaId      Int?
+  empresa        Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  tipo           TipoMovimiento
+  origenId       Int?
+
+  cantidad       Int
+
+  stockAnterior  Int
+  stockNuevo     Int
+
+  observacion    String?
+
+  @@map("movimientos_inventario")
+}
+
+enum TipoMovimiento {
+  COMPRA
+  VENTA
+  AJUSTE
+  MERMA
+  DEVOLUCION
+  ELIMINACION
 }

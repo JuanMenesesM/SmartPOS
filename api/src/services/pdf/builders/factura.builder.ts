@@ -1,39 +1,42 @@
-import { prisma } from "../../config/prisma";
-import { FacturaVentaDTO } from "./factura.dto";
+import { prisma } from "../../../config/prisma";
+import { FacturaVentaDTO } from "../factura.dto";
 
 export const construirFacturaVentaDTO = async (ventaId: number): Promise<FacturaVentaDTO> => {
     
-    const venta = await prisma.venta.findUnique({
-        where: { id: ventaId },
-        include: {
-            usuario: {
-                select: {
-                    nombre: true,
-                    apellido: true,
-                    correo: true
-                }
-            },
-            detalles: {
-                include: {
-                    producto: {
-                        select: {
-                            nombre: true
+    const [venta, empresa] = await Promise.all([
+        prisma.venta.findUnique({
+            where: { id: ventaId },
+            include: {
+                usuario: {
+                    select: {
+                        nombre: true,
+                        apellido: true,
+                        correo: true
+                    }
+                },
+                detalles: {
+                    include: {
+                        producto: {
+                            select: {
+                                nombre: true
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        }),
+        prisma.empresa.findFirst()
+    ]);
 
     if (!venta) {
         throw new Error("Venta no encontrada");
     }
 
-    const empresa = await prisma.empresa.findFirst();
-
     if (!empresa) {
         throw new Error("Empresa no encontrada");
     }
+
+    const numeroFactura = `FAC-${venta.id.toString().padStart(6, "0")}`;
 
     return {
         empresa: {
@@ -49,16 +52,18 @@ export const construirFacturaVentaDTO = async (ventaId: number): Promise<Factura
             id: venta.id,
             fecha: venta.fecha,
             cliente: "Consumidor Final",
-            vendedor: `${venta.usuario?.nombre} ${venta.usuario?.apellido}`,
-            numeroFactura: `FAC-${venta.id.toString().padStart(6, "0")}`},
-            detalles: venta.detalles.map(detalle => ({
+            vendedor: `${venta.usuario.nombre} ${venta.usuario.apellido}`,
+            numeroFactura
+        },
+        detalles: venta.detalles.map(detalle => ({
             producto: detalle.producto.nombre,
             cantidad: detalle.cantidad,
             precioUnitario: detalle.precioUnitario,
             subtotal: detalle.subtotal
         })),
         totales: {
-            subtotal: venta.total,
+            moneda: "COP",
+            subtotal: venta.detalles.reduce((acc, d) => acc + d.subtotal, 0),
             descuentos: 0,
             impuestos: 0,
             total: venta.total

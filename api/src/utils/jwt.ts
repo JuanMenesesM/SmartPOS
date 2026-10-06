@@ -11,13 +11,15 @@ export interface JwtPayload {
     id: number;
     correo: string;
     rolId: number;
+    empresaId: number | null;
 }
 
 export const generarToken = (usuario: Usuario): string => {
     const payload: JwtPayload = {
         id: usuario.id,
         correo: usuario.correo,
-        rolId: usuario.rolId
+        rolId: usuario.rolId,
+        empresaId: usuario.empresaId
     };
 
     return jwt.sign(payload, JWT_SECRET, {

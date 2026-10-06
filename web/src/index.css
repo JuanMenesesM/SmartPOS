@@ -1,0 +1,123 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Inter Variable', sans-serif;
+  }
+
+  :root {
+    /* Modo Claro - Obsidian Tech Pearl */
+    --background: 210 40% 98%;          /* #F8FAFC */
+    --foreground: 222 47% 11%;          /* #0F172A */
+    
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary: Electric Indigo */
+    --primary: 243 75% 59%;             /* #4F46E5 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Success: Vibrant Emerald */
+    --success: 160 84% 39%;             /* #10B981 */
+    --success-foreground: 0 0% 100%;
+
+    /* Danger: Rose Velvet */
+    --danger: 347 89% 60%;              /* #F43F5E */
+    --danger-foreground: 0 0% 100%;
+
+    /* Warning: Amber Flame */
+    --warning: 38 92% 50%;              /* #F59E0B */
+    --warning-foreground: 0 0% 100%;
+
+    /* Info: Sky Cyan */
+    --info: 199 89% 48%;                /* #0EA5E9 */
+    --info-foreground: 0 0% 100%;
+
+    --destructive: 347 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    /* Modo Oscuro - Obsidian Cyber Space */
+    --background: 222 47% 6%;           /* #090D16 */
+    --foreground: 210 40% 98%;          /* #F8FAFC */
+    
+    --card: 222 47% 9%;                 /* #101623 - Tarjetas */
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary: Electric Indigo Cyan */
+    --primary: 239 84% 67%;             /* #6366F1 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Success: Emerald Neon */
+    --success: 160 84% 39%;             /* #10B981 */
+    --success-foreground: 0 0% 100%;
+
+    /* Danger: Rose Velvet */
+    --danger: 347 89% 60%;              /* #F43F5E */
+    --danger-foreground: 0 0% 100%;
+
+    /* Warning: Amber Glow */
+    --warning: 38 92% 50%;              /* #F59E0B */
+    --warning-foreground: 0 0% 100%;
+
+    /* Info: Electric Cyan */
+    --info: 189 94% 43%;                /* #06B6D4 */
+    --info-foreground: 0 0% 100%;
+
+    --destructive: 347 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    --border: 217 33% 16%;
+    --input: 217 33% 16%;
+    --ring: 239 84% 67%;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  html {
+    @apply font-sans;
+  }
+}

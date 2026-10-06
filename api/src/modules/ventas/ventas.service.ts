@@ -4,7 +4,7 @@ import { eventBus } from "../../events/eventBus";
 import { Events } from "../../events/eventNames";
 import type { VentaCreadaEvent } from "../../events/eventTypes";
 
-export const crearVenta = async (data: CreateVentaDTO, usuarioId: number) => {
+export const crearVenta = async (data: CreateVentaDTO, usuarioId: number, empresaId: number | null) => {
     const { productos } = data;
 
     if (!productos || productos.length === 0) {
@@ -54,7 +54,9 @@ export const crearVenta = async (data: CreateVentaDTO, usuarioId: number) => {
             productoId: producto.id,
             cantidad: cantidadSolicitada,
             precioUnitario: producto.precioVenta,
-            subtotal: subtotal
+            subtotal,
+            stockAnterior: producto.stock,
+            stockNuevo: producto.stock - cantidadSolicitada
         });
     });
 
@@ -63,11 +65,14 @@ export const crearVenta = async (data: CreateVentaDTO, usuarioId: number) => {
         const venta = await tx.venta.create({
             data: {
                 usuarioId,
-                total
+                empresaId,
+                total,
+                metodoPago: data.metodoPago ?? "EFECTIVO",
+                referencia: data.referencia ?? null,
             }
         });
 
-        const detalles = detallesVenta.map(detalle => ({
+        const detalles = detallesVenta.map(({ stockAnterior, stockNuevo, ...detalle }) => ({
             ventaId: venta.id,
             ...detalle
         }));
@@ -90,7 +95,8 @@ export const crearVenta = async (data: CreateVentaDTO, usuarioId: number) => {
         ventaId: ventaCreada.id,
         usuarioId,
         total: ventaCreada.total,
-        fecha: ventaCreada.fecha
+        fecha: ventaCreada.fecha,
+        productos: detallesVenta
     };
 
     eventBus.emit(Events.VENTA_CREADA, evento);
@@ -99,11 +105,12 @@ export const crearVenta = async (data: CreateVentaDTO, usuarioId: number) => {
 };
 
 export const listarVentas = async (filtros: FiltrosVentaDTO = {}) => {
-    const { fechaInicio, fechaFin, usuarioId } = filtros;
+    const { fechaInicio, fechaFin, usuarioId, empresaId } = filtros;
 
     return await prisma.venta.findMany({
         where: {
             ...(usuarioId && { usuarioId }),
+            ...(empresaId && { empresaId }),
             ...(fechaInicio || fechaFin ? {
                 fecha: {
                     ...(fechaInicio && { gte: new Date(fechaInicio) }),
@@ -116,6 +123,11 @@ export const listarVentas = async (filtros: FiltrosVentaDTO = {}) => {
                 select: {
                     nombre: true,
                     correo: true
+                }
+            },
+            empresa: {
+                select: {
+                    nombre: true
                 }
             },
             detalles: {

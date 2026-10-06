@@ -195,3 +195,37 @@ export const obtenerCompraPorId = async (id: number) => {
 
     return compra;
 };
+
+/**
+ * Retorna los productos que han sido comprados al proveedor dado.
+ * Si el proveedor nunca ha tenido compras, retorna todos los productos activos.
+ */
+export const getProductosPorProveedor = async (proveedorId: number) => {
+    // IDs de productos que aparecen en compras de este proveedor
+    const detalles = await prisma.detalleCompra.findMany({
+        where: {
+            compra: { proveedorId }
+        },
+        select: { productoId: true },
+        distinct: ["productoId"],
+    });
+
+    const productoIds = detalles.map(d => d.productoId);
+
+    // Si no hay historial, devolver todos los productos activos
+    const where = productoIds.length > 0
+        ? { activo: true, id: { in: productoIds } }
+        : { activo: true };
+
+    return await prisma.producto.findMany({
+        where,
+        select: {
+            id: true,
+            nombre: true,
+            codigo: true,
+            precioVenta: true,
+            stock: true,
+        },
+        orderBy: { nombre: "asc" },
+    });
+};

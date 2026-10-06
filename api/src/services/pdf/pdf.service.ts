@@ -1,146 +1,260 @@
 import PDFDocument from "pdfkit";
 import { FacturaVentaDTO } from "./factura.dto";
 
-// Colores de la paleta
-const COLOR_PRIMARIO  = "#1a1a2e"; // Azul oscuro para header
-const COLOR_ACENTO    = "#e94560"; // Rojo/coral para detalles
-const COLOR_GRIS      = "#f0f0f0"; // Gris claro para filas alternas
-const COLOR_TEXTO     = "#333333";
-const COLOR_BLANCO    = "#ffffff";
+// ── Paleta de colores ──────────────────────────────────────────────────────────
+const PURPLE     = "#6B4EFF";   // Acento principal (violeta)
+const DARK       = "#1A1A2E";   // Texto oscuro / nombre empresa
+const GRAY_LABEL = "#9CA3AF";   // Etiquetas secundarias
+const GRAY_LINE  = "#E5E7EB";   // Separadores
+const LAVENDER   = "#EEF0FF";   // Fondo caja de estado
+const WHITE      = "#FFFFFF";
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const money = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+const fmt = (v: number) => money.format(v);
+const formatDate = (date: Date) => date.toLocaleDateString("es-CO", { dateStyle: "long" });
+
+// ── Labels ─────────────────────────────────────────────────────────────────────
+const LABELS = {
+    invoiceNumber:  "NÚMERO DE FACTURA",
+    issueDate:      "FECHA DE EMISIÓN",
+    billTo:         "CLIENTE",
+    serviceBy:      "VENDEDOR",
+    paymentStatus:  "ESTADO DE PAGO",
+    saleDate:       "FECHA DE VENTA",
+    qty:            "CANT",
+    description:    "DESCRIPCIÓN",
+    unitPrice:      "UNITARIO",
+    subtotalCol:    "SUBTOTAL",
+    subtotal:       "SUBTOTAL",
+    discount:       "DESCUENTO",
+    totalDue:       "TOTAL A PAGAR",
+    footer:         "Generado por SmartPOS · Documento fiscal para uso interno y del cliente"
+};
+
+const PAGE_W  = 595.28;
+const MARGIN  = 50;
+const CONTENT = PAGE_W - MARGIN * 2;  // 495.28
+
+// ──────────────────────────────────────────────────────────────────────────────
 export const generarFacturaVenta = async (factura: FacturaVentaDTO): Promise<Buffer> => {
+
+    // Descargar logo antes de entrar al Promise (no se puede await dentro)
+    let logoBuffer: Buffer | null = null;
+    if (factura.empresa.logo) {
+        try {
+            const res = await fetch(factura.empresa.logo);
+            const arrayBuffer = await res.arrayBuffer();
+            logoBuffer = Buffer.from(arrayBuffer);
+        } catch {
+            // Si falla la descarga, se usará el nombre en texto
+        }
+    }
+
     return new Promise((resolve, reject) => {
         try {
-            const doc = new PDFDocument({ margin: 50, size: "A4" });
+            const doc = new PDFDocument({ margin: MARGIN, size: "A4" });
             const buffers: Buffer[] = [];
-
-            doc.on("data", (chunk) => buffers.push(chunk));
-            doc.on("end", () => resolve(Buffer.concat(buffers)));
+            doc.on("data", (c) => buffers.push(c));
+            doc.on("end",  () => resolve(Buffer.concat(buffers)));
             doc.on("error", reject);
 
-            // ─────────────────────────────────────────────
-            // CABECERA: Banda de color con el nombre de la empresa
-            // ─────────────────────────────────────────────
-            doc.rect(0, 0, 612, 100).fill(COLOR_PRIMARIO);
+            // ── 1. CABECERA ─────────────────────────────────────────────────
+            const headerY = 60;
+            const LOGO_SIZE = 48;
+            const empresaNombre = (factura.empresa.nombre ?? "").toUpperCase();
 
-            doc.fillColor(COLOR_BLANCO)
-               .font("Helvetica-Bold")
+            let nameX = MARGIN; // posición X donde empieza el nombre
+
+            if (logoBuffer) {
+                doc.image(logoBuffer, MARGIN, headerY - 6, {
+                    fit: [LOGO_SIZE, LOGO_SIZE]
+                });
+                nameX = MARGIN + LOGO_SIZE + 12; // nombre al lado del logo
+            }
+
+            // Nombre empresa (siempre visible)
+            doc.font("Helvetica-Bold")
                .fontSize(22)
-               .text(factura.empresa.nombre.toUpperCase(), 50, 28, { align: "center" });
+               .fillColor(PURPLE)
+               .text(empresaNombre, nameX, headerY);
+
+            // Subtítulo empresa
+            doc.font("Helvetica")
+               .fontSize(9)
+               .fillColor(GRAY_LABEL)
+               .text(
+                   `${factura.empresa.ciudad ?? ""}  ·  ${factura.empresa.direccion ?? ""}`,
+                   nameX, headerY + 28
+               );
+
+            // Número de factura (derecha)
+            const rightX = MARGIN + CONTENT;
+            doc.font("Helvetica")
+               .fontSize(7)
+               .fillColor(GRAY_LABEL)
+               .text(LABELS.invoiceNumber, MARGIN, headerY, { width: CONTENT, align: "right" });
+
+            doc.font("Helvetica-Bold")
+               .fontSize(14)
+               .fillColor(DARK)
+               .text(`#${factura.venta.numeroFactura}`, MARGIN, headerY + 13, { width: CONTENT, align: "right" });
+
+            // Fecha
+            doc.font("Helvetica")
+               .fontSize(7)
+               .fillColor(GRAY_LABEL)
+               .text(LABELS.issueDate, MARGIN, headerY + 34, { width: CONTENT, align: "right" });
 
             doc.font("Helvetica")
                .fontSize(9)
+               .fillColor(DARK)
                .text(
-                   `NIT: ${factura.empresa.nit}  |  ${factura.empresa.direccion}  |  Tel: ${factura.empresa.telefono}`,
-                   50, 58, { align: "center" }
+                   formatDate(factura.venta.fecha),
+                   MARGIN, headerY + 46, { width: CONTENT, align: "right" }
                );
 
-            doc.fontSize(9)
-               .text(factura.empresa.ciudad, 50, 72, { align: "center" });
+            // ── Línea divisoria ──────────────────────────────────────────────
+            const lineY = headerY + 72;
+            doc.moveTo(MARGIN, lineY).lineTo(MARGIN + CONTENT, lineY)
+               .strokeColor(DARK).lineWidth(1.5).stroke();
 
-            // ─────────────────────────────────────────────
-            // BLOQUE DE INFO: Número de factura y datos del cliente
-            // ─────────────────────────────────────────────
-            doc.fillColor(COLOR_TEXTO);
-            const infoY = 120;
+            // ── 2. BLOQUE DE INFORMACIÓN ────────────────────────────────────
+            const infoY = lineY + 20;
+            const col2X = MARGIN + 160;
+            const col3X = MARGIN + 320;
+            const boxW  = 175;
 
-            // Lado izquierdo: Datos del cliente
-            doc.font("Helvetica-Bold").fontSize(10).text("DATOS DE LA VENTA", 50, infoY);
-            doc.font("Helvetica").fontSize(9)
-               .text(`Cliente:  ${factura.venta.cliente}`, 50, infoY + 16)
-               .text(`Vendedor: ${factura.venta.vendedor}`, 50, infoY + 30);
+            // BILL TO
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL).text(LABELS.billTo, MARGIN, infoY);
+            doc.font("Helvetica-Bold").fontSize(14).fillColor(DARK)
+               .text(factura.venta.cliente || "Consumidor Final", MARGIN, infoY + 12);
 
-            // Lado derecho: Número de factura y fecha
-            doc.font("Helvetica-Bold")
-               .fontSize(18)
-               .fillColor(COLOR_ACENTO)
-               .text(factura.venta.numeroFactura, 350, infoY, { width: 200, align: "right" });
+            // SERVICE BY
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL).text(LABELS.serviceBy, col2X, infoY);
+            doc.font("Helvetica-Bold").fontSize(14).fillColor(DARK)
+               .text(factura.venta.vendedor, col2X, infoY + 12);
 
-            doc.font("Helvetica").fontSize(9).fillColor(COLOR_TEXTO)
+            // Caja de estado (derecha)
+            const boxX = MARGIN + CONTENT - boxW;
+            doc.roundedRect(boxX, infoY - 4, boxW, 60, 6).fill(LAVENDER);
+
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL)
+               .text(LABELS.paymentStatus, boxX + 12, infoY + 6);
+            doc.font("Helvetica-Bold").fontSize(9).fillColor(PURPLE)
+               .text("PAGADO", boxX + 12, infoY + 20);
+
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL)
+               .text(LABELS.saleDate, boxX + 12, infoY + 36);
+            doc.font("Helvetica").fontSize(8).fillColor(DARK)
                .text(
-                   `Fecha: ${factura.venta.fecha.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })}`,
-                   350, infoY + 22, { width: 200, align: "right" }
+                   factura.venta.fecha.toLocaleTimeString("es-CO", { timeStyle: "short" }),
+                   boxX + 12, infoY + 48
                );
 
-            // Línea separadora
-            const sepY = infoY + 60;
-            doc.moveTo(50, sepY).lineTo(562, sepY).strokeColor(COLOR_PRIMARIO).lineWidth(1.5).stroke();
+            // ── 3. TABLA DE ITEMS ────────────────────────────────────────────
+            const tableTop = infoY + 80;
 
-            // ─────────────────────────────────────────────
-            // TABLA DE PRODUCTOS
-            // ─────────────────────────────────────────────
-            const tableTop = sepY + 20;
-            const colCant    = 50;
-            const colProd    = 100;
-            const colPunit   = 380;
-            const colSub     = 480;
-            const tableRight = 562;
+            // Encabezados de la tabla
+            const COL_CANT = MARGIN;
+            const COL_DESC = MARGIN + 50;
+            const COL_UNIT = MARGIN + CONTENT - 130;
+            const COL_SUB  = MARGIN + CONTENT - 60;
 
-            // Encabezado de la tabla con fondo de color
-            doc.rect(50, tableTop, tableRight - 50, 22).fill(COLOR_PRIMARIO);
-            doc.fillColor(COLOR_BLANCO).font("Helvetica-Bold").fontSize(9);
-            doc.text("CANT",     colCant,  tableTop + 6);
-            doc.text("PRODUCTO", colProd,  tableTop + 6);
-            doc.text("P. UNIT",  colPunit, tableTop + 6, { width: 80, align: "right" });
-            doc.text("SUBTOTAL", colSub,   tableTop + 6, { width: 80, align: "right" });
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL);
+            doc.text(LABELS.qty,         COL_CANT, tableTop);
+            doc.text(LABELS.description, COL_DESC, tableTop);
+            doc.text(LABELS.unitPrice,   COL_UNIT, tableTop, { width: 70, align: "right" });
+            doc.text(LABELS.subtotalCol, COL_SUB,  tableTop, { width: 60, align: "right" });
 
-            // Filas de productos
-            let rowY = tableTop + 28;
-            doc.font("Helvetica").fontSize(9).fillColor(COLOR_TEXTO);
+            // Línea bajo encabezado
+            const headLineY = tableTop + 14;
+            doc.moveTo(MARGIN, headLineY).lineTo(MARGIN + CONTENT, headLineY)
+               .strokeColor(GRAY_LINE).lineWidth(0.5).stroke();
 
-            for (let i = 0; i < factura.detalles.length; i++) {
-                const d = factura.detalles[i];
+            // Filas
+            let rowY = headLineY + 16;
+            for (const d of factura.detalles) {
+                // Cantidad (en formato "01", "02"...)
+                doc.font("Helvetica-Bold").fontSize(10).fillColor(DARK)
+                   .text(d.cantidad.toString().padStart(2, "0"), COL_CANT, rowY);
 
-                // Fila alterna (color gris claro en filas pares)
-                if (i % 2 === 0) {
-                    doc.rect(50, rowY - 4, tableRight - 50, 20).fill(COLOR_GRIS);
-                }
+                // Nombre del producto (negrita)
+                doc.font("Helvetica-Bold").fontSize(10).fillColor(DARK)
+                   .text(d.producto, COL_DESC, rowY, { width: COL_UNIT - COL_DESC - 10 });
 
-                doc.fillColor(COLOR_TEXTO);
-                doc.text(d.cantidad.toString(),                colCant,  rowY);
-                doc.text(d.producto.substring(0, 45),         colProd,  rowY);
-                doc.text(d.precioUnitario.toLocaleString("es-CO"), colPunit, rowY, { width: 80, align: "right" });
-                doc.text(d.subtotal.toLocaleString("es-CO"),       colSub,   rowY, { width: 80, align: "right" });
+                // Precio unitario
+                doc.font("Helvetica").fontSize(10).fillColor(DARK)
+                   .text(fmt(d.precioUnitario), COL_UNIT, rowY, { width: 70, align: "right" });
 
-                rowY += 20;
+                // Subtotal
+                doc.font("Helvetica-Bold").fontSize(10).fillColor(DARK)
+                   .text(fmt(d.subtotal), COL_SUB, rowY, { width: 60, align: "right" });
+
+                rowY += 30;
+
+                // Línea divisora sutil entre items
+                doc.moveTo(MARGIN, rowY - 8).lineTo(MARGIN + CONTENT, rowY - 8)
+                   .strokeColor(GRAY_LINE).lineWidth(0.3).stroke();
             }
 
-            // Línea inferior de la tabla
-            doc.moveTo(50, rowY + 4).lineTo(tableRight, rowY + 4)
-               .strokeColor(COLOR_PRIMARIO).lineWidth(1).stroke();
+            // ── 4. TOTALES ───────────────────────────────────────────────────
+            const totY = rowY + 10;
+            const totLabelX = COL_UNIT;
+            const totValX   = COL_SUB;
 
-            // ─────────────────────────────────────────────
-            // TOTAL FINAL
-            // ─────────────────────────────────────────────
-            const totalY = rowY + 20;
+            // Subtotal
+            doc.font("Helvetica").fontSize(8).fillColor(GRAY_LABEL)
+               .text(LABELS.subtotal, totLabelX, totY, { width: 70, align: "right" });
+            doc.font("Helvetica").fontSize(9).fillColor(DARK)
+               .text(fmt(factura.totales.subtotal), totValX, totY, { width: 60, align: "right" });
 
-            // Caja del total con color acento
-            doc.rect(380, totalY, 182, 34).fill(COLOR_ACENTO);
-            doc.fillColor(COLOR_BLANCO)
-               .font("Helvetica-Bold")
-               .fontSize(11)
-               .text("TOTAL:", 390, totalY + 10);
+            // Descuentos (si hubiese)
+            if (factura.totales.descuentos > 0) {
+                doc.font("Helvetica").fontSize(8).fillColor(GRAY_LABEL)
+                   .text(LABELS.discount, totLabelX, totY + 18, { width: 70, align: "right" });
+                doc.font("Helvetica").fontSize(9).fillColor(DARK)
+                   .text(`-${fmt(factura.totales.descuentos)}`, totValX, totY + 18, { width: 60, align: "right" });
+            }
 
-            doc.fontSize(13)
-               .text(`$ ${factura.totales.total.toLocaleString("es-CO")}`, 390, totalY + 10, {
-                   width: 162, align: "right"
-               });
+            // Caja TOTAL
+            const totalBoxY = totY + (factura.totales.descuentos > 0 ? 36 : 18);
+            const totalBoxX = COL_UNIT - 10;
+            const totalBoxW = MARGIN + CONTENT - totalBoxX;
 
-            // ─────────────────────────────────────────────
-            // PIE DE PÁGINA
-            // ─────────────────────────────────────────────
-            doc.fillColor(COLOR_TEXTO)
-               .font("Helvetica")
-               .fontSize(8)
-               .text("Gracias por su compra. Este documento es válido como soporte de pago.", 50, 750, {
-                   align: "center",
-                   width: 512
-               });
+            doc.roundedRect(totalBoxX, totalBoxY, totalBoxW, 44, 6).fill(PURPLE);
+            doc.font("Helvetica").fontSize(8).fillColor(WHITE)
+               .text(LABELS.totalDue, totalBoxX + 12, totalBoxY + 8,
+                   { width: totalBoxW - 24, align: "right" });
+            doc.font("Helvetica-Bold").fontSize(15).fillColor(WHITE)
+               .text(fmt(factura.totales.total), totalBoxX + 12, totalBoxY + 20,
+                   { width: totalBoxW - 24, align: "right" });
 
+            // ── 5. PIE DE PÁGINA ─────────────────────────────────────────────
+            const footerY = 780;
+
+            doc.moveTo(MARGIN, footerY).lineTo(MARGIN + CONTENT, footerY)
+               .strokeColor(GRAY_LINE).lineWidth(0.5).stroke();
+
+            doc.font("Helvetica-Bold").fontSize(8).fillColor(DARK)
+               .text((factura.empresa.nombre ?? "").toUpperCase(), MARGIN + CONTENT, footerY + 12,
+                   { width: CONTENT, align: "right" });
+            doc.font("Helvetica").fontSize(7.5).fillColor(GRAY_LABEL)
+               .text(
+                   `${factura.empresa.direccion}  |  Tel: ${factura.empresa.telefono}  |  ${factura.empresa.correo}`,
+                   MARGIN + CONTENT, footerY + 24,
+                   { width: CONTENT, align: "right" }
+               );
+
+            doc.font("Helvetica").fontSize(7).fillColor(GRAY_LABEL)
+               .text(
+                   LABELS.footer,
+                   MARGIN, footerY + 12, { width: CONTENT, align: "center" }
+               );
             doc.end();
 
-        } catch (error) {
-            reject(error);
+        } catch (err) {
+            reject(err);
         }
     });
 };

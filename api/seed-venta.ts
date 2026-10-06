@@ -30,6 +30,15 @@ async function seedVenta() {
         }
     });
 
+    const p3 = await prisma.producto.create({
+        data: {
+            codigo: "GORA-001",
+            nombre: "Gorra Nike Negra",
+            precioVenta: 45000,
+            stock: 20
+        }
+    });
+
     console.log("✅ Productos creados.");
 
     // 3. Crear la Venta simulando el Service

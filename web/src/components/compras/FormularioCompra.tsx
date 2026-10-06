@@ -10,9 +10,11 @@ import {
   Loader2,
   ChevronDown,
   Check,
+  Truck,
 } from "lucide-react";
 import { useCrearCompra, useProveedores, useProductosPorProveedor } from "@/hooks/useCompras";
 import { ProductoCatalogo } from "@/services/compras.service";
+import ProveedorModal from "@/components/compras/ProveedorModal";
 
 interface ItemCarrito {
   productoId: number;
@@ -38,6 +40,7 @@ export function FormularioCompra({ onBack }: FormularioCompraProps) {
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
   const [openProv, setOpenProv] = useState(false);
+  const [modalProvOpen, setModalProvOpen] = useState(false);
   const refProv = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,8 +52,6 @@ export function FormularioCompra({ onBack }: FormularioCompraProps) {
   }, []);
 
   const { data: proveedores = [], isLoading: loadingProv } = useProveedores();
-  // Productos filtrados por proveedor: si hay proveedor seleccionado usa historial,
-  // si no hay proveedor muestra todos
   const proveedorIdNum = proveedorId ? Number(proveedorId) : null;
   const { data: productos = [], isLoading: loadingProd } = useProductosPorProveedor(proveedorIdNum);
   const crearMutation = useCrearCompra();
@@ -175,6 +176,13 @@ export function FormularioCompra({ onBack }: FormularioCompraProps) {
 
   return (
     <div className="space-y-6">
+      {modalProvOpen && (
+        <ProveedorModal
+          onClose={() => setModalProvOpen(false)}
+          onSuccess={(nuevo) => handleSeleccionarProveedor(String(nuevo.id))}
+        />
+      )}
+
       {/* ── Encabezado ─────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
@@ -202,71 +210,122 @@ export function FormularioCompra({ onBack }: FormularioCompraProps) {
       </div>
 
       {/* ── Selección de Proveedor ────────────────────────────────────── */}
-      <div className="bg-card border border-border p-4 rounded-2xl shadow-sm flex items-end gap-4 flex-wrap">
-        <div className="flex-1 min-w-[240px] space-y-1.5">
-          <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-            Proveedor *
-          </label>
-          <div ref={refProv} className="relative">
-            <button
-              id="nueva-compra-proveedor"
-              type="button"
-              disabled={loadingProv}
-              onClick={() => setOpenProv((p) => !p)}
-              className={`
-                w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-sm font-semibold
-                transition-all duration-200 select-none
-                ${openProv || proveedorId
-                  ? "bg-primary/10 text-primary border-primary/30 shadow-sm"
-                  : "bg-background text-foreground border-border hover:bg-accent hover:border-border/80 shadow-sm"
-                }
-                disabled:opacity-50 disabled:cursor-not-allowed
-              `}
-            >
-              <span className="truncate">
-                {loadingProv
-                  ? "Cargando proveedores..."
-                  : proveedorId
-                  ? proveedores.find((p) => String(p.id) === proveedorId)?.nombre ?? "Seleccione proveedor..."
-                  : "Seleccione proveedor..."}
-              </span>
-              <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${openProv ? "rotate-180 text-primary" : ""}`} />
-            </button>
+      <div className="bg-card border border-border p-4 rounded-2xl shadow-sm space-y-2">
+        <label className="text-xs font-bold text-foreground uppercase tracking-wider">
+          Proveedor *
+        </label>
 
-            {openProv && !loadingProv && (
-              <div className="absolute left-0 top-full mt-2 w-full z-50 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="px-3 pt-3 pb-1.5">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Selecciona el proveedor de esta orden</p>
-                </div>
-                <div className="p-1.5 space-y-0.5 max-h-52 overflow-y-auto">
-                  {proveedores.map((p) => {
-                    const isSelected = String(p.id) === proveedorId;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleSeleccionarProveedor(String(p.id))}
-                        className={`
-                          w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-xl text-left
-                          transition-colors duration-150
-                          ${isSelected ? "bg-primary text-primary-foreground font-semibold" : "hover:bg-accent text-foreground"}
-                        `}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold truncate">{p.nombre}</p>
-                          {p.nit && <p className={`text-[11px] mt-0.5 ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>NIT: {p.nit}</p>}
-                        </div>
-                        {isSelected && <Check className="h-4 w-4 shrink-0 ml-2" />}
-                      </button>
-                    );
-                  })}
-                  {proveedores.length === 0 && (
-                    <p className="px-3 py-3 text-xs text-muted-foreground text-center">No hay proveedores registrados.</p>
-                  )}
+        <div className="flex items-center gap-2">
+          <div ref={refProv} className="relative flex-1">
+          <button
+            id="nueva-compra-proveedor"
+            type="button"
+            disabled={loadingProv}
+            onClick={() => setOpenProv((p) => !p)}
+            className={`
+              w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-sm font-medium
+              transition-all duration-200 select-none
+              ${openProv || proveedorId
+                ? "bg-primary/10 text-primary border-primary/30 shadow-sm"
+                : "bg-background text-muted-foreground border-border hover:bg-accent hover:border-border/80 shadow-sm"
+              }
+              disabled:opacity-50 disabled:cursor-not-allowed
+            `}
+          >
+            <span className="truncate">
+              {loadingProv
+                ? "Cargando proveedores..."
+                : proveedorId
+                ? proveedores.find((p) => String(p.id) === proveedorId)?.nombre ?? "Seleccione proveedor..."
+                : "Seleccione proveedor..."}
+            </span>
+            <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${openProv ? "rotate-180 text-primary" : ""}`} />
+          </button>
+
+          {openProv && !loadingProv && (
+            <div className="absolute left-0 top-full mt-2 w-full z-50 rounded-2xl border border-border/60 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+              style={{ background: "var(--card)", backdropFilter: "blur(12px)" }}
+            >
+              {/* Header del dropdown */}
+              <div className="px-4 pt-3 pb-2 border-b border-border/50"
+                style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.06), hsl(var(--muted)/0.8))" }}
+              >
+                <div className="flex items-center gap-2">
+                  <Truck className="h-3.5 w-3.5 text-primary/70" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Proveedores disponibles</p>
                 </div>
               </div>
-            )}
+
+              {/* Lista */}
+              <div className="p-2 space-y-1 max-h-48 overflow-y-auto">
+                {proveedores.map((p) => {
+                  const isSelected = String(p.id) === proveedorId;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleSeleccionarProveedor(String(p.id))}
+                      className={`
+                        w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left
+                        transition-all duration-150
+                        ${
+                          isSelected
+                            ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm"
+                            : "hover:bg-primary/8 text-foreground hover:text-primary"
+                        }
+                      `}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate leading-tight">{p.nombre}</p>
+                        {p.nit && (
+                          <p className={`text-[10px] mt-0.5 font-mono ${isSelected ? "text-primary-foreground/65" : "text-muted-foreground"}`}>
+                            NIT {p.nit}
+                          </p>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <span className="shrink-0 ml-2 h-5 w-5 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                          <Check className="h-3 w-3" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+                {proveedores.length === 0 && (
+                  <div className="py-5 text-center">
+                    <Truck className="h-7 w-7 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-xs font-medium text-muted-foreground">No hay proveedores registrados</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Crea uno con el botón de arriba</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-2 py-2 border-t border-border/50"
+                style={{ background: "linear-gradient(135deg, hsl(var(--muted)/0.4), hsl(var(--muted)/0.2))" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => { setOpenProv(false); setModalProvOpen(true); }}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Crear Nuevo Proveedor</span>
+                </button>
+              </div>
+            </div>
+          )}
           </div>
+
+          {/* Botón Nuevo Proveedor — mismo nivel vertical que el selector */}
+          <button
+            type="button"
+            onClick={() => setModalProvOpen(true)}
+            className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-sm shadow-emerald-500/25 active:scale-[0.97] transition-all duration-150"
+          >
+            <Truck className="h-3.5 w-3.5" />
+            <span className="whitespace-nowrap">+ Nuevo Proveedor</span>
+          </button>
         </div>
       </div>
 

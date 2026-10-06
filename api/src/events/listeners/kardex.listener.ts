@@ -10,7 +10,7 @@ eventBus.on(Events.VENTA_CREADA, async (data: VentaCreadaEvent) => {
                     productoId: producto.productoId,
                     usuarioId: data.usuarioId,
                     tipo: "VENTA",
-                    cantidad: producto.cantidad,
+                    cantidad: -producto.cantidad, // negativo: sale del inventario
                     stockAnterior: producto.stockAnterior,
                     stockNuevo: producto.stockNuevo,
                     origenId: data.ventaId,

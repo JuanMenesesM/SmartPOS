@@ -1,13 +1,12 @@
 import { Mesa, ItemCarritoMesa, EstadoMesa } from "@/types/venta";
 
-const STORAGE_KEY = "smartpos_mesas_v3"; // v3 fuerza limpieza para generar 5 mesas
+const STORAGE_KEY = "smartpos_mesas_v5";
 
 // ── Helper: Extraer usuario del token JWT almacenado en localStorage ──────────
 export function getUsuarioActual(): string {
   try {
     const token = localStorage.getItem("token");
     if (!token) return "—";
-    // Los JWT tienen 3 partes separadas por punto. El payload es la segunda.
     const payload = JSON.parse(atob(token.split(".")[1]));
     const nombre = payload.nombre || payload.sub || payload.email || "";
     const apellido = payload.apellido || "";
@@ -18,7 +17,7 @@ export function getUsuarioActual(): string {
   }
 }
 
-// ── Mesas iniciales — todas LIBRES, sin datos ficticios ───────────────────────
+// ── Mesas iniciales — 5 mesas limpias, 100% LIBRES y DISPONIBLES ────────────────
 const MESAS_INICIALES: Mesa[] = Array.from({ length: 5 }, (_, i) => ({
   id: String(i + 1),
   numero: i + 1,
@@ -27,18 +26,39 @@ const MESAS_INICIALES: Mesa[] = Array.from({ length: 5 }, (_, i) => ({
   carrito: [],
 }));
 
+// ── Limpiar todas las claves antiguas de mesas en localStorage ──────────────────
+export function limpiarStorageMesasAntiguas() {
+  try {
+    ["smartpos_mesas", "smartpos_mesas_v1", "smartpos_mesas_v2", "smartpos_mesas_v3", "smartpos_mesas_v4"].forEach(k => {
+      localStorage.removeItem(k);
+    });
+  } catch {}
+}
+
 // ── CRUD de mesas en localStorage ─────────────────────────────────────────────
 export function getMesas(): Mesa[] {
   try {
+    limpiarStorageMesasAntiguas();
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(MESAS_INICIALES));
       return MESAS_INICIALES;
     }
-    return JSON.parse(raw);
+    const parsed: Mesa[] = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(MESAS_INICIALES));
+      return MESAS_INICIALES;
+    }
+    return parsed;
   } catch {
     return MESAS_INICIALES;
   }
+}
+
+export function resetearTodasLasMesas(): Mesa[] {
+  limpiarStorageMesasAntiguas();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(MESAS_INICIALES));
+  return MESAS_INICIALES;
 }
 
 export function getMesaById(id: string): Mesa | undefined {

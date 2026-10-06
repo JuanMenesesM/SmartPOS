@@ -1,85 +1,20 @@
 import { useState, useMemo } from "react";
-import { Store, Plus, Download, ChevronDown, FileSpreadsheet, FileCode, FileText } from "lucide-react";
+import { Store, Plus, Truck } from "lucide-react";
 import { useCompras, useProveedores } from "@/hooks/useCompras";
-import { CompraAPI, exportarComprasCSV } from "@/services/compras.service";
 import { FormularioCompra } from "@/components/compras/FormularioCompra";
 import ComprasTable from "@/components/compras/ComprasTable";
 import ComprasFilters from "@/components/compras/ComprasFilters";
 import CompraDetalleModal from "@/components/compras/CompraDetalleModal";
-import { useRef, useEffect } from "react";
+import ProveedorModal from "@/components/compras/ProveedorModal";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
 
-// ── Export Dropdown Interno ────────────────────────────────────────────────────
-function ExportarComprasDropdown({ compras, disabled }: { compras: CompraAPI[]; disabled: boolean }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        id="exportar-compras-btn"
-        onClick={() => setOpen((p) => !p)}
-        disabled={disabled}
-        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all duration-200 select-none ${
-          disabled
-            ? "opacity-40 cursor-not-allowed bg-card border-border text-foreground"
-            : open
-            ? "bg-emerald-600 text-white border-transparent shadow-sm"
-            : "bg-emerald-500 text-white border-transparent hover:bg-emerald-600 shadow-sm"
-        }`}
-      >
-        <Download className="h-3.5 w-3.5" />
-        <span>Exportar</span>
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-44 z-50 bg-card border border-border rounded-2xl shadow-xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="px-2.5 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            Formato
-          </div>
-          <button
-            onClick={() => { setOpen(false); exportarComprasCSV(compras); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
-            Excel (.xlsx)
-          </button>
-          <button
-            onClick={() => { setOpen(false); exportarComprasCSV(compras); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <FileCode className="h-3.5 w-3.5 text-blue-500" />
-            CSV (.csv)
-          </button>
-          <button
-            onClick={() => { setOpen(false); window.print(); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <FileText className="h-3.5 w-3.5 text-red-500" />
-            PDF (.pdf)
-          </button>
-        </div>
-      )}
-    </div>
-  );
+function formatCOP(n: number): string {
+  return `$${new Intl.NumberFormat("es-CO").format(n)}`;
 }
 
-// ── Página Principal ───────────────────────────────────────────────────────────
 export default function ComprasPage() {
   const [vista, setVista] = useState<"lista" | "crear">("lista");
-  const [compraDetalle, setCompraDetalle] = useState<CompraAPI | null>(null);
+  const [compraDetalle, setCompraDetalle] = useState<any | null>(null);
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -99,7 +34,7 @@ export default function ComprasPage() {
   const comprasFiltradas = useMemo(() => {
     const q = busqueda.toLowerCase().trim();
     if (!q) return compras;
-    return compras.filter((c) => {
+    return compras.filter((c: any) => {
       const factura = `fc-${String(c.id).padStart(4, "0")}`;
       const proveedor = c.proveedor.nombre.toLowerCase();
       const usuario = `${c.usuario.nombre} ${c.usuario.apellido || ""}`.toLowerCase();
@@ -107,13 +42,20 @@ export default function ComprasPage() {
     });
   }, [compras, busqueda]);
 
-  // Si el usuario quiere crear una compra, mostramos el formulario completo
+  const comprasExportHeaders = ["Factura", "Fecha", "Proveedor", "Productos", "Total (COP)", "Atendido Por"];
+  const comprasExportRows = useMemo(() => {
+    return comprasFiltradas.map((c: any) => [
+      `FC-${String(c.id).padStart(4, "0")}`,
+      new Date(c.fecha).toLocaleDateString("es-CO"),
+      c.proveedor?.nombre || "N/A",
+      c.detalles?.map((d: any) => `${d.producto?.nombre} (${d.cantidad} un)`).join("; ") || "",
+      formatCOP(c.total),
+      `${c.usuario?.nombre || ""} ${c.usuario?.apellido || ""}`.trim(),
+    ]);
+  }, [comprasFiltradas]);
+
   if (vista === "crear") {
-    return (
-      <FormularioCompra
-        onBack={() => setVista("lista")}
-      />
-    );
+    return <FormularioCompra onBack={() => setVista("lista")} />;
   }
 
   return (
@@ -136,9 +78,11 @@ export default function ComprasPage() {
         </div>
 
         <div className="flex items-center gap-2.5 mt-0.5">
-          <ExportarComprasDropdown
-            compras={comprasFiltradas}
-            disabled={comprasFiltradas.length === 0}
+          <ExportDropdown
+            title="Reporte General de Compras"
+            filename="compras"
+            headers={comprasExportHeaders}
+            rows={comprasExportRows}
           />
 
           <button

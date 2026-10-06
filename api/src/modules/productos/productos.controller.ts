@@ -1,6 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import * as productosService from "./productos.service";
 
+export const getSiguienteCodigo = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+        const codigo = await productosService.generarSiguienteCodigo();
+        return res.json({ codigo });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const listarProductos = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const productos = await productosService.getProductos();

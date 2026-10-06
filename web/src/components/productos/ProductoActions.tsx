@@ -18,31 +18,71 @@ export default function ProductoActions({
   onToggleEstado,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleToggle = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuHeight = 175;
+      const menuWidth = 192; // 12rem / w-48
+
+      // Determine whether to show above or below based on viewport
+      const showAbove = rect.bottom + menuHeight > window.innerHeight && rect.top > menuHeight;
+      const top = showAbove ? rect.top - menuHeight : rect.bottom + 4;
+      const left = Math.max(10, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 10));
+
+      setCoords({ top, left });
+    }
+    setOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        btnRef.current &&
+        !btnRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    function handleScroll() {
+      if (open) setOpen(false);
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [open]);
 
   return (
-    <div ref={ref} className="relative flex justify-end">
+    <div className="relative inline-flex items-center justify-center">
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        ref={btnRef}
+        type="button"
+        onClick={handleToggle}
+        className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors active:scale-95"
         title="Opciones del producto"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 z-50 bg-card border border-border rounded-2xl shadow-xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div
+          ref={menuRef}
+          style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+          className="fixed z-[99999] w-48 bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
+        >
           <button
+            type="button"
             onClick={() => {
               setOpen(false);
               onEditar(producto);
@@ -54,6 +94,7 @@ export default function ProductoActions({
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setOpen(false);
               onDuplicar(producto);
@@ -65,6 +106,7 @@ export default function ProductoActions({
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setOpen(false);
               onVerKardex(producto);
@@ -78,6 +120,7 @@ export default function ProductoActions({
           <div className="h-px bg-border my-1" />
 
           <button
+            type="button"
             onClick={() => {
               setOpen(false);
               onToggleEstado(producto);

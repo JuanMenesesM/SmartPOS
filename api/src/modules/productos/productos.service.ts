@@ -1,6 +1,20 @@
 import { prisma } from "../../config/prisma";
 import { CreateProductoDTO } from "./productos.dto";
 
+export const generarSiguienteCodigo = async (): Promise<string> => {
+    const ultimo = await prisma.producto.findFirst({
+        where: { codigo: { startsWith: "P" } },
+        orderBy: { id: "desc" },
+        select: { codigo: true }
+    });
+
+    if (!ultimo) return "P0001";
+
+    const num = parseInt(ultimo.codigo.replace(/\D/g, ""), 10);
+    if (isNaN(num)) return "P0001";
+    return `P${String(num + 1).padStart(4, "0")}`;
+};
+
 export const crearProducto = async (data: CreateProductoDTO) => {
     const { codigo, nombre, precioVenta, stock } = data;
 
@@ -75,10 +89,11 @@ export const actualizarProducto = async (id: number, data: Partial<CreateProduct
 
     // Si el stock cambió, registrar un movimiento AJUSTE en Kardex
     if (data.stock !== undefined && data.stock !== stockAnterior) {
+        const usuario = await prisma.usuario.findFirst({ select: { id: true } });
         await prisma.movimientoInventario.create({
             data: {
                 productoId: id,
-                usuarioId: 1, // Sistema - ajuste manual
+                usuarioId: usuario?.id ?? 1,
                 empresaId: producto.empresaId ?? null,
                 tipo: "AJUSTE",
                 cantidad: data.stock - stockAnterior,

@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:3000";
+import api from "@/lib/axios";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -41,35 +39,35 @@ export interface UpdateUsuarioPayload {
 // ── Funciones del Servicio ─────────────────────────────────────────────────────
 
 export async function getUsuarios(): Promise<Usuario[]> {
-  const { data } = await axios.get(`${API_URL}/usuarios`, {
+  const { data } = await api.get(`/usuarios`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getUsuarioById(id: number): Promise<Usuario> {
-  const { data } = await axios.get(`${API_URL}/usuarios/${id}`, {
+  const { data } = await api.get(`/usuarios/${id}`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function crearUsuario(payload: CreateUsuarioPayload): Promise<{ message: string }> {
-  const { data } = await axios.post(`${API_URL}/usuarios/crear`, payload, {
+  const { data } = await api.post(`/usuarios/crear`, payload, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function actualizarUsuario(id: number, payload: UpdateUsuarioPayload): Promise<{ message: string }> {
-  const { data } = await axios.put(`${API_URL}/usuarios/${id}`, payload, {
+  const { data } = await api.put(`/usuarios/${id}`, payload, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function desactivarUsuario(id: number): Promise<{ message: string }> {
-  const { data } = await axios.put(`${API_URL}/usuarios/desactivar/${id}`, {}, {
+  const { data } = await api.put(`/usuarios/desactivar/${id}`, {}, {
     headers: getAuthHeaders(),
   });
   return data;

@@ -31,13 +31,13 @@ export default function ProductosTable({
     return (
       <div className="bg-card rounded-2xl border border-border overflow-hidden p-4 space-y-2.5">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-9 bg-muted/60 rounded-xl animate-pulse" />
+          <div key={i} className="h-12 bg-muted/60 rounded-xl animate-pulse" />
         ))}
       </div>
     );
   }
 
-  // ── Empty State Compacto (Reducido ~25%) ────────────────────────────────────
+  // ── Empty State Compacto ────────────────────────────────────
   if (productos.length === 0) {
     return (
       <div className="bg-card rounded-2xl border border-border py-7 px-6 text-center flex flex-col items-center justify-center space-y-2.5 min-h-[210px]">
@@ -68,53 +68,57 @@ export default function ProductosTable({
   // ── Tabla Ultra Limpia ───────────────────────────────────────────────────────
   return (
     <div className="bg-card rounded-2xl border border-border overflow-hidden">
-      <div className="overflow-x-auto max-h-[380px] overflow-y-auto">
+      <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="sticky top-0 z-10 bg-muted/40 backdrop-blur-md border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur-md border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             <tr>
-              <th className="py-2.5 px-4 font-bold text-center">Código</th>
-              <th className="py-2.5 px-4 font-bold text-center">Producto</th>
-              <th className="py-2.5 px-4 font-bold text-center">Precio</th>
-              <th className="py-2.5 px-4 font-bold text-center">Stock</th>
-              <th className="py-2.5 px-4 font-bold text-center">Estado</th>
-              <th className="py-2.5 px-4 font-bold text-center">Acciones</th>
+              <th className="py-3 px-4 font-bold text-center">Código</th>
+              <th className="py-3 px-4 font-bold text-left">Producto</th>
+              <th className="py-3 px-4 font-bold text-right">Precio</th>
+              <th className="py-3 px-4 font-bold text-center">Stock</th>
+              <th className="py-3 px-4 font-bold text-center">Estado</th>
+              <th className="py-3 px-4 font-bold text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
             {productos.map((p) => (
               <tr
                 key={p.id}
-                className="hover:bg-accent/40 transition-colors duration-150"
+                className="hover:bg-accent/40 transition-colors duration-150 group"
               >
                 {/* Código */}
-                <td className="py-2.5 px-4 font-mono text-[11px] font-semibold text-muted-foreground text-center">
-                  {p.codigo}
+                <td className="py-3 px-4 font-mono text-[11px] font-semibold text-muted-foreground text-center">
+                  <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/50">
+                    {p.codigo}
+                  </span>
                 </td>
 
                 {/* Producto */}
-                <td className="py-2.5 px-4 font-semibold text-foreground text-center">
+                <td className="py-3 px-4 font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                   {p.nombre}
                 </td>
 
                 {/* Precio */}
-                <td className="py-2.5 px-4 text-center font-mono font-bold text-foreground">
+                <td className="py-3 px-4 text-right font-mono font-bold text-foreground">
                   {formatCOP(p.precioVenta)}
                 </td>
 
                 {/* Stock */}
-                <td className="py-2.5 px-4 text-center flex justify-center">
-                  <ProductoStockBadge stock={p.stock} />
+                <td className="py-3 px-4 text-center">
+                  <div className="flex justify-center">
+                    <ProductoStockBadge stock={p.stock} />
+                  </div>
                 </td>
 
                 {/* Estado */}
-                <td className="py-2.5 px-4 text-center">
+                <td className="py-3 px-4 text-center">
                   <div className="flex justify-center">
                     <ProductoStatusBadge activo={p.activo} />
                   </div>
                 </td>
 
                 {/* Acciones */}
-                <td className="py-2.5 px-4 text-center">
+                <td className="py-3 px-4 text-center">
                   <div className="flex justify-center">
                     <ProductoActions
                       producto={p}

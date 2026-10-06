@@ -1,7 +1,5 @@
-import axios from "axios";
+import api from "@/lib/axios";
 import { EventoAuditoria, AuditoriaStats } from "@/types/auditoria";
-
-const API_URL = "http://localhost:3000";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -11,7 +9,7 @@ function getAuthHeaders() {
 export async function getAuditoriaEventos(): Promise<EventoAuditoria[]> {
   try {
     // Timeout of 5 seconds to prevent infinite loading if backend is down
-    const res = await axios.get(`${API_URL}/auditoria`, {
+    const res = await api.get(`/auditoria`, {
       headers: getAuthHeaders(),
       timeout: 5000,
     });

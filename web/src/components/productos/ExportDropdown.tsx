@@ -1,6 +1,6 @@
-import { Download, FileSpreadsheet, FileCode } from "lucide-react";
+import { useMemo } from "react";
 import { Producto } from "@/types/producto";
-import { exportarProductosCSV } from "@/services/productos.service";
+import { ExportDropdown as UIExportDropdown } from "@/components/ui/ExportDropdown";
 
 interface Props {
   productos: Producto[];
@@ -8,47 +8,25 @@ interface Props {
 }
 
 export default function ExportDropdown({ productos, disabled }: Props) {
-  const handleExportExcel = () => {
-    exportarProductosCSV(productos);
-  };
+  const headers = ["Código", "Producto", "Precio Venta (COP)", "Stock", "Estado"];
 
-  const handleExportCSV = () => {
-    exportarProductosCSV(productos);
-  };
+  const rows = useMemo(() => {
+    return productos.map((p) => [
+      p.codigo,
+      p.nombre,
+      `$${new Intl.NumberFormat("es-CO").format(p.precioVenta)}`,
+      p.stock,
+      p.activo ? "Activo" : "Inactivo",
+    ]);
+  }, [productos]);
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={handleExportExcel}
-        disabled={disabled}
-        className={`
-          flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold
-          transition-all duration-200 select-none
-          ${disabled
-            ? "opacity-40 cursor-not-allowed bg-card border-border text-foreground"
-            : "bg-emerald-500 text-white border-transparent hover:bg-emerald-600 shadow-sm"
-          }
-        `}
-      >
-        <FileSpreadsheet className="h-3.5 w-3.5" />
-        <span>Excel</span>
-      </button>
-
-      <button
-        onClick={handleExportCSV}
-        disabled={disabled}
-        className={`
-          flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold
-          transition-all duration-200 select-none
-          ${disabled
-            ? "opacity-40 cursor-not-allowed bg-card border-border text-foreground"
-            : "bg-blue-500 text-white border-transparent hover:bg-blue-600 shadow-sm"
-          }
-        `}
-      >
-        <FileCode className="h-3.5 w-3.5" />
-        <span>CSV</span>
-      </button>
-    </div>
+    <UIExportDropdown
+      title="Catálogo General de Productos"
+      filename="catalogo_productos"
+      headers={headers}
+      rows={rows}
+      disabled={disabled}
+    />
   );
 }

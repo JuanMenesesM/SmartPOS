@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { EventoAuditoria, AuditoriaStats as AuditoriaStatsType } from "@/types/auditoria";
 
 import AuditoriaStats from "@/components/auditoria/AuditoriaStats";
@@ -7,6 +7,7 @@ import AuditoriaFilters from "@/components/auditoria/AuditoriaFilters";
 import AuditoriaTable from "@/components/auditoria/AuditoriaTable";
 import AuditoriaDetailSheet from "@/components/auditoria/AuditoriaDetailSheet";
 import { getAuditoriaEventos, getAuditoriaStats } from "@/services/auditoria.service";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
 
 export default function AuditoriaPage() {
   const [eventos, setEventos] = useState<EventoAuditoria[]>([]);
@@ -84,10 +85,19 @@ export default function AuditoriaPage() {
           </div>
         </div>
 
-        <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-transparent bg-emerald-500 text-white hover:bg-emerald-600 text-xs font-bold shadow-sm transition-all select-none">
-          <Download className="h-3.5 w-3.5 text-white" />
-          <span>Exportar</span>
-        </button>
+        <ExportDropdown
+          title="Registro de Auditoría de Sistema"
+          filename="auditoria_eventos"
+          headers={["ID", "Fecha", "Usuario", "Módulo", "Acción", "Detalle"]}
+          rows={eventosFiltrados.map((ev) => [
+            `AUD-${String(ev.id).padStart(4, "0")}`,
+            new Date(ev.fecha).toLocaleString("es-CO"),
+            ev.usuarioNombre,
+            ev.modulo,
+            ev.accion,
+            ev.descripcion,
+          ])}
+        />
       </div>
 
       {/* ── KPIs ─────────────────────────────────────────────────────────────── */}

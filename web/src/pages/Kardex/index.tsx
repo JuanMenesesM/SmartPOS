@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Download, Plus, History } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, History } from "lucide-react";
 import { MovimientoKardex } from "@/types/producto";
 import { getKardexMovimientos, getKardexStats } from "@/services/kardex.service";
 
@@ -8,6 +8,7 @@ import KardexFilters from "@/components/kardex/KardexFilters";
 import KardexTable from "@/components/kardex/KardexTable";
 import KardexDetailSheet from "@/components/kardex/KardexDetailSheet";
 import KardexAjusteSheet from "@/components/kardex/KardexAjusteSheet";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
 
 export default function KardexPage() {
   const [movimientos, setMovimientos] = useState<MovimientoKardex[]>([]);
@@ -68,10 +69,22 @@ export default function KardexPage() {
         </div>
         
         <div className="flex items-center gap-2.5">
-          <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-transparent bg-emerald-500 text-white hover:bg-emerald-600 text-xs font-bold shadow-sm transition-all select-none">
-            <Download className="h-3.5 w-3.5 text-white" />
-            <span>Exportar</span>
-          </button>
+          <ExportDropdown
+            title="Historial de Movimientos de Inventario (Kardex)"
+            filename="kardex_movimientos"
+            headers={["ID", "Fecha", "Producto", "Tipo", "Cantidad", "Stock Antes", "Nuevo Stock", "Usuario", "Observación"]}
+            rows={movimientos.map((m) => [
+              `MOV-${String(m.id).padStart(4, "0")}`,
+              new Date(m.fecha).toLocaleString("es-CO"),
+              m.productoNombre,
+              m.tipo,
+              m.cantidad > 0 ? `+${m.cantidad}` : m.cantidad,
+              m.stockAnterior,
+              m.stockNuevo,
+              m.usuario,
+              m.observacion || "-",
+            ])}
+          />
           
           <button 
             onClick={handleNuevoAjuste}

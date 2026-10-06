@@ -30,7 +30,14 @@ export default function Header({ onMenuOpen }: HeaderProps) {
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("admin@smartpos.com");
   const [userRole, setUserRole] = useState("Administrador");
-  const [notifLeidas, setNotifLeidas] = useState(false);
+  const [readNotifIds, setReadNotifIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("smartpos_read_notifications");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -54,7 +61,24 @@ export default function Header({ onMenuOpen }: HeaderProps) {
     })),
   ];
 
-  const unreadCount = notifLeidas ? 0 : notifications.length;
+  const unreadCount = notifications.filter(n => !readNotifIds.includes(n.id)).length;
+
+  const marcarTodasLeidas = () => {
+    const allIds = notifications.map(n => n.id);
+    const updated = Array.from(new Set([...readNotifIds, ...allIds]));
+    setReadNotifIds(updated);
+    try {
+      localStorage.setItem("smartpos_read_notifications", JSON.stringify(updated));
+    } catch {}
+  };
+
+  const toggleNotificaciones = () => {
+    const nextState = !notifOpen;
+    setNotifOpen(nextState);
+    if (nextState && unreadCount > 0) {
+      marcarTodasLeidas();
+    }
+  };
 
   useEffect(() => {
     try {
@@ -157,7 +181,7 @@ export default function Header({ onMenuOpen }: HeaderProps) {
         {/* Notificaciones */}
         <div ref={notifRef} className="relative">
           <button
-            onClick={() => setNotifOpen((p) => !p)}
+            onClick={toggleNotificaciones}
             className={`relative p-2 rounded-lg transition-colors ${notifOpen ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}
             aria-label="Notificaciones"
           >
@@ -174,30 +198,53 @@ export default function Header({ onMenuOpen }: HeaderProps) {
             <div className="absolute right-0 mt-1.5 w-80 rounded-xl border border-border bg-card p-2 shadow-xl animate-in fade-in slide-in-from-top-2 duration-150 z-50">
               <div className="px-2 py-1.5 border-b border-border mb-1 flex justify-between items-center">
                 <p className="text-sm font-bold text-foreground">Notificaciones</p>
-                {unreadCount > 0 && (
+                {unreadCount > 0 ? (
                   <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-semibold">{unreadCount} Nuevas</span>
-                )}
-              </div>
-              <div className="space-y-0.5 max-h-64 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-muted-foreground">No hay notificaciones.</div>
                 ) : (
-                  notifications.map(n => (
-                    <div key={n.id} className="p-2 hover:bg-accent rounded-lg cursor-pointer transition-colors">
-                      <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">{n.icon} {n.title}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{n.msg}</p>
-                    </div>
-                  ))
+                  <span className="text-[10px] text-muted-foreground font-medium">Al día</span>
                 )}
               </div>
-              <div className="mt-1 border-t border-border pt-1">
-                <button 
-                  onClick={() => { setNotifLeidas(true); setNotifOpen(false); }}
-                  className="w-full py-1.5 text-center text-xs font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                >
-                  Marcar todas como leídas
-                </button>
+              <div className="space-y-1 max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-muted-foreground">No tienes notificaciones pendientes.</div>
+                ) : (
+                  notifications.map(n => {
+                    const isRead = readNotifIds.includes(n.id);
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          if (!isRead) {
+                            const updated = Array.from(new Set([...readNotifIds, n.id]));
+                            setReadNotifIds(updated);
+                            localStorage.setItem("smartpos_read_notifications", JSON.stringify(updated));
+                          }
+                        }}
+                        className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                          isRead ? "bg-transparent opacity-70 hover:opacity-100 hover:bg-accent/40" : "bg-primary/5 border border-primary/15 hover:bg-primary/10"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold text-foreground flex items-center gap-1.5">{n.icon} {n.title}</p>
+                          {!isRead && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{n.msg}</p>
+                      </div>
+                    );
+                  })
+                )}
               </div>
+              {notifications.length > 0 && (
+                <div className="mt-1.5 border-t border-border pt-1.5">
+                  <button 
+                    type="button"
+                    onClick={() => { marcarTodasLeidas(); setNotifOpen(false); }}
+                    className="w-full py-1.5 text-center text-xs font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                  >
+                    Marcar todas como leídas
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

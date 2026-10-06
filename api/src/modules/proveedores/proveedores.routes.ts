@@ -5,7 +5,8 @@ import { adminMiddleware } from "../../middlewares/admin.middleware";
 
 const router = express.Router();
 
-router.post("/crear", authMiddleware, adminMiddleware, ProveedoresController.crearProveedorController);
+router.post("/crear", authMiddleware, ProveedoresController.crearProveedorController);
+router.post("/", authMiddleware, ProveedoresController.crearProveedorController);
 router.get("/", authMiddleware, ProveedoresController.listarProveedoresController);
 router.get("/:id", authMiddleware, ProveedoresController.obtenerProveedorPorIdController);
 router.put("/:id", authMiddleware, adminMiddleware, ProveedoresController.actualizarProveedorController);

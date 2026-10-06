@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "@/lib/axios";
 import {
   Producto,
   CreateProductoInput,
@@ -6,31 +6,23 @@ import {
   ProductoKardexResponse,
 } from "@/types/producto";
 
-const API_URL = "http://localhost:3000";
-
-function getAuthHeaders() {
-  const token = localStorage.getItem("token");
-  return { Authorization: `Bearer ${token}` };
+export async function getSiguienteCodigo(): Promise<string> {
+  const { data } = await api.get("/productos/siguiente-codigo");
+  return data.codigo;
 }
 
 export async function getProductos(): Promise<Producto[]> {
-  const { data } = await axios.get(`${API_URL}/productos`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get("/productos");
   return data;
 }
 
 export async function getProductoById(id: number): Promise<Producto> {
-  const { data } = await axios.get(`${API_URL}/productos/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get(`/productos/${id}`);
   return data;
 }
 
 export async function crearProducto(payload: CreateProductoInput): Promise<Producto> {
-  const { data } = await axios.post(`${API_URL}/productos/crear`, payload, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.post("/productos/crear", payload);
   return data;
 }
 
@@ -38,31 +30,17 @@ export async function actualizarProducto(
   id: number,
   payload: UpdateProductoInput
 ): Promise<Producto> {
-  const { data } = await axios.put(
-    `${API_URL}/productos/actualizar/${id}`,
-    payload,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const { data } = await api.put(`/productos/actualizar/${id}`, payload);
   return data;
 }
 
 export async function toggleEstadoProducto(id: number): Promise<Producto> {
-  const { data } = await axios.patch(
-    `${API_URL}/productos/toggle/${id}`,
-    {},
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const { data } = await api.patch(`/productos/toggle/${id}`, {});
   return data;
 }
 
 export async function getKardexProducto(id: number): Promise<ProductoKardexResponse> {
-  const { data } = await axios.get(`${API_URL}/productos/${id}/kardex`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get(`/productos/${id}/kardex`);
   return data;
 }
 

@@ -4,6 +4,8 @@ import {
   getCompraById,
   crearCompra,
   getProveedores,
+  crearProveedor,
+  CreateProveedorPayload,
   getProductosCatalogo,
   getProductosPorProveedor,
   anularCompra,
@@ -66,6 +68,16 @@ export function useProveedores() {
     queryKey: ["proveedores"],
     queryFn: getProveedores,
     staleTime: 60_000,
+  });
+}
+
+export function useCrearProveedor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateProveedorPayload) => crearProveedor(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["proveedores"] });
+    },
   });
 }
 

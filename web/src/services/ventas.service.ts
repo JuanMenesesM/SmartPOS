@@ -1,7 +1,5 @@
-import axios from "axios";
+import api from "@/lib/axios";
 import { VentaBackend, CreateVentaPayload } from "@/types/venta";
-
-const API_URL = "http://localhost:3000";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -9,21 +7,21 @@ function getAuthHeaders() {
 }
 
 export async function getVentas(): Promise<VentaBackend[]> {
-  const { data } = await axios.get(`${API_URL}/ventas`, {
+  const { data } = await api.get(`/ventas`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getVentaById(id: number): Promise<VentaBackend> {
-  const { data } = await axios.get(`${API_URL}/ventas/${id}`, {
+  const { data } = await api.get(`/ventas/${id}`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function crearVentaBackend(payload: CreateVentaPayload): Promise<VentaBackend> {
-  const { data } = await axios.post(`${API_URL}/ventas/crear`, payload, {
+  const { data } = await api.post(`/ventas/crear`, payload, {
     headers: getAuthHeaders(),
   });
   return data;

@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:3000";
+import api from "@/lib/axios";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -95,7 +93,7 @@ export async function getDashboard(rango?: RangoFechas): Promise<DashboardData> 
     params.fin    = rango.fin.toISOString();
   }
 
-  const { data } = await axios.get(`${API_URL}/dashboard`, {
+  const { data } = await api.get(`/dashboard`, {
     headers: getAuthHeaders(),
     params,
   });
@@ -103,7 +101,7 @@ export async function getDashboard(rango?: RangoFechas): Promise<DashboardData> 
 }
 
 export async function getInsights(): Promise<InsightsData> {
-  const { data } = await axios.get(`${API_URL}/openai/test`, {
+  const { data } = await api.get(`/openai/test`, {
     headers: getAuthHeaders(),
   });
   return data;

@@ -200,15 +200,15 @@ export default function MesaPOSPage() {
               <p>No hay productos disponibles para agregar</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto p-1.5 pt-2.5">
               {productosDisponibles.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => handleAgregarProducto(p)}
                   className="
-                    group text-left p-3.5 rounded-2xl border border-border bg-card
-                    hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5
-                    active:scale-95 transition-all duration-150 flex flex-col justify-between h-28
+                    group text-left p-3.5 rounded-2xl border border-border/80 bg-card
+                    hover:border-primary hover:ring-2 hover:ring-primary/20 hover:shadow-md
+                    active:scale-[0.98] transition-all duration-150 flex flex-col justify-between h-28 relative
                   "
                 >
                   <div>

@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:3000";
+import api from "@/lib/axios";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -76,49 +74,64 @@ export async function getCompras(filtros?: {
   if (filtros?.fechaFin) params.append("fechaFin", filtros.fechaFin);
   if (filtros?.proveedorId) params.append("proveedorId", String(filtros.proveedorId));
 
-  const { data } = await axios.get(`${API_URL}/compras?${params.toString()}`, {
+  const { data } = await api.get(`/compras?${params.toString()}`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getCompraById(id: number): Promise<CompraAPI> {
-  const { data } = await axios.get(`${API_URL}/compras/${id}`, {
+  const { data } = await api.get(`/compras/${id}`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function crearCompra(payload: CreateCompraPayload): Promise<{ message: string; compra: CompraAPI }> {
-  const { data } = await axios.post(`${API_URL}/compras/crear`, payload, {
+  const { data } = await api.post(`/compras/crear`, payload, {
+    headers: getAuthHeaders(),
+  });
+  return data;
+}
+
+export interface CreateProveedorPayload {
+  nombre: string;
+  nit?: string;
+  telefono?: string;
+  correo?: string;
+  direccion?: string;
+}
+
+export async function crearProveedor(payload: CreateProveedorPayload): Promise<{ message: string; proveedor: Proveedor }> {
+  const { data } = await api.post(`/proveedores/crear`, payload, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getProveedores(): Promise<Proveedor[]> {
-  const { data } = await axios.get(`${API_URL}/proveedores`, {
+  const { data } = await api.get(`/proveedores`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getProductosCatalogo(): Promise<ProductoCatalogo[]> {
-  const { data } = await axios.get(`${API_URL}/productos`, {
+  const { data } = await api.get(`/productos`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function getProductosPorProveedor(proveedorId: number): Promise<ProductoCatalogo[]> {
-  const { data } = await axios.get(`${API_URL}/compras/productos/por-proveedor/${proveedorId}`, {
+  const { data } = await api.get(`/compras/productos/por-proveedor/${proveedorId}`, {
     headers: getAuthHeaders(),
   });
   return data;
 }
 
 export async function anularCompra(id: number): Promise<void> {
-  await axios.put(`${API_URL}/compras/${id}/anular`, {}, {
+  await api.put(`/compras/${id}/anular`, {}, {
     headers: getAuthHeaders(),
   });
 }

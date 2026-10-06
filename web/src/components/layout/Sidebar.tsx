@@ -1,8 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { X, Zap, LayoutDashboard, Package, ShoppingCart, Truck, FileText, ClipboardList, Building2, Settings, Shield } from "lucide-react";
-import { isSuperAdmin } from "@/services/auth.service";
+import { X, Zap, LayoutDashboard, Package, ShoppingCart, Truck, FileText, ClipboardList, Building2, Settings } from "lucide-react";
 
-const regularNavGroups = [
+const navGroups = [
   {
     label: "Principal",
     items: [
@@ -28,23 +27,12 @@ const regularNavGroups = [
   },
 ];
 
-const adminNavGroups = [
-  {
-    label: "Super Admin",
-    items: [
-      { to: "/admin", label: "Panel Maestro", icon: Shield },
-    ],
-  },
-  ...regularNavGroups,
-];
-
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const navGroups = isSuperAdmin() ? adminNavGroups : regularNavGroups;
   return (
     <>
       {/* Overlay mobile */}

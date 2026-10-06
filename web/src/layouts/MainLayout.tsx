@@ -7,7 +7,7 @@ export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen bg-background">
 
       {/* Sidebar — fijo en desktop, overlay en mobile */}
       <Sidebar

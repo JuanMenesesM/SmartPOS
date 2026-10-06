@@ -1,7 +1,5 @@
-import axios from "axios";
+import api from "@/lib/axios";
 import { MovimientoKardex } from "@/types/producto";
-
-const API_URL = "http://localhost:3000";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -10,7 +8,7 @@ function getAuthHeaders() {
 
 export async function getKardexMovimientos(): Promise<MovimientoKardex[]> {
   try {
-    const res = await axios.get(`${API_URL}/movimientos-inventario`, {
+    const res = await api.get(`/movimientos-inventario`, {
       headers: getAuthHeaders(),
     });
     if (Array.isArray(res.data)) {
@@ -24,7 +22,7 @@ export async function getKardexMovimientos(): Promise<MovimientoKardex[]> {
 
 export async function getKardexStats() {
   try {
-    const res = await axios.get(`${API_URL}/movimientos-inventario/stats`, {
+    const res = await api.get(`/movimientos-inventario/stats`, {
       headers: getAuthHeaders(),
     });
     if (res.data && typeof res.data.total === "number") {
@@ -50,7 +48,7 @@ export async function crearMovimiento(payload: {
   stockNuevo: number;
   observacion?: string;
 }) {
-  const { data } = await axios.post(`${API_URL}/movimientos-inventario`, payload, {
+  const { data } = await api.post(`/movimientos-inventario`, payload, {
     headers: getAuthHeaders(),
   });
   return data;

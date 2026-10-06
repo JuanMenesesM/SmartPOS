@@ -229,3 +229,45 @@ export const getProductosPorProveedor = async (proveedorId: number) => {
         orderBy: { nombre: "asc" },
     });
 };
+
+export const anularCompra = async (id: number, usuarioId: number) => {
+    return await prisma.$transaction(async (tx) => {
+        const compra = await tx.compra.findUnique({
+            where: { id },
+            include: { detalles: true }
+        });
+
+        if (!compra) {
+            throw new Error("Compra no encontrada");
+        }
+
+        if (!compra.activo) {
+            throw new Error("La compra ya se encuentra anulada");
+        }
+
+        // Revertir el stock de cada producto
+        for (const detalle of compra.detalles) {
+            const producto = await tx.producto.findUnique({
+                where: { id: detalle.productoId }
+            });
+
+            if (!producto) continue;
+
+            if (producto.stock < detalle.cantidad) {
+                throw new Error(`No se puede anular la compra: el stock de "${producto.nombre}" quedaría negativo.`);
+            }
+
+            await tx.producto.update({
+                where: { id: detalle.productoId },
+                data: { stock: { decrement: detalle.cantidad } }
+            });
+        }
+
+        // Marcar compra como inactiva
+        return await tx.compra.update({
+            where: { id },
+            data: { activo: false }
+        });
+    });
+};
+

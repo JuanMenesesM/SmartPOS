@@ -4,6 +4,17 @@ import ModalPortal from "@/components/ui/ModalPortal";
 import { useCrearProveedor } from "@/hooks/useCompras";
 import { Proveedor } from "@/services/compras.service";
 
+/** Formatea un NIT colombiano mientras el usuario escribe.
+ *  Acepta dígitos y guion, produce: 900.123.456-7  */
+function formatNIT(raw: string): string {
+  // Separa parte numérica y dígito verificador
+  const [main, dv] = raw.split("-");
+  const digits = main.replace(/\D/g, "");
+  // Agrega puntos cada 3 dígitos desde la derecha
+  const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return dv !== undefined ? `${formatted}-${dv.replace(/\D/g, "")}` : formatted;
+}
+
 interface ProveedorModalProps {
   onClose: () => void;
   onSuccess?: (nuevoProveedor: Proveedor) => void;
@@ -31,7 +42,7 @@ export default function ProveedorModal({ onClose, onSuccess }: ProveedorModalPro
     try {
       const res = await crearProveedorMutation.mutateAsync({
         nombre: nombre.trim(),
-        nit: nit.trim() || undefined,
+        nit: nit.replace(/\./g, "").trim() || undefined,  // guarda sin puntos
         telefono: telefono.trim() || undefined,
         correo: correo.trim() || undefined,
         direccion: direccion.trim() || undefined,
@@ -123,8 +134,12 @@ export default function ProveedorModal({ onClose, onSuccess }: ProveedorModalPro
                 <input
                   type="text"
                   value={nit}
-                  onChange={(e) => setNit(e.target.value)}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setNit(formatNIT(raw));
+                  }}
                   placeholder="900.123.456-7"
+                  maxLength={14}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-mono rounded-xl bg-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
               </div>

@@ -2,10 +2,7 @@ import { X, ShoppingBag, Calendar, User, Hash, Package } from "lucide-react";
 import ModalPortal from "@/components/ui/ModalPortal";
 import { CompraAPI } from "@/services/compras.service";
 import CompraStatusBadge from "./CompraStatusBadge";
-
-function formatCOP(amount: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 interface Props {
   compra: CompraAPI | null;

@@ -1,5 +1,6 @@
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
+import { formatCOP, formatCOPCompact } from "@/utils/formatCOP";
 
 interface Props {
   data: { fecha: string; total: number }[];
@@ -53,12 +54,7 @@ export default function VentasPorDiaChart({ data }: Props) {
     yaxis: {
       labels: {
         style: { colors: "#94a3b8", fontSize: "11px" },
-        formatter: (val) =>
-          val >= 1_000_000
-            ? `$${(val / 1_000_000).toFixed(1)}M`
-            : val >= 1_000
-            ? `$${(val / 1_000).toFixed(0)}K`
-            : `$${val}`,
+        formatter: (val) => formatCOPCompact(val),
       },
     },
     grid: {
@@ -69,12 +65,7 @@ export default function VentasPorDiaChart({ data }: Props) {
     tooltip: {
       theme: "dark",
       y: {
-        formatter: (val) =>
-          new Intl.NumberFormat("es-CO", {
-            style: "currency",
-            currency: "COP",
-            maximumFractionDigits: 0,
-          }).format(val),
+        formatter: (val) => formatCOP(val),
       },
     },
     markers: {

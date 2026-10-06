@@ -4,10 +4,7 @@ import ModalPortal from "@/components/ui/ModalPortal";
 import { Search, Download, Eye, Receipt } from "lucide-react";
 import { useVentas } from "@/hooks/useVentas";
 import { VentaBackend } from "@/types/venta";
-
-function formatCOP(amount: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 export default function HistorialTab() {
   const { data: ventas = [], isLoading } = useVentas();

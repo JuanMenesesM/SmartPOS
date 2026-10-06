@@ -2,10 +2,7 @@ import { ShoppingBag, Plus } from "lucide-react";
 import { CompraAPI } from "@/services/compras.service";
 import CompraStatusBadge from "./CompraStatusBadge";
 import CompraActions from "./CompraActions";
-
-function formatCOP(amount: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 interface Props {
   compras: CompraAPI[];

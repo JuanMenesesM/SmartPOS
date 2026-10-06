@@ -7,10 +7,7 @@ import ComprasFilters from "@/components/compras/ComprasFilters";
 import CompraDetalleModal from "@/components/compras/CompraDetalleModal";
 import ProveedorModal from "@/components/compras/ProveedorModal";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
-
-function formatCOP(n: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(n)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 export default function ComprasPage() {
   const [vista, setVista] = useState<"lista" | "crear">("lista");

@@ -3,15 +3,12 @@ import ModalPortal from "@/components/ui/ModalPortal";
 import { X, Layers, ArrowDownLeft, ArrowUpRight, RefreshCw, Package, ShieldCheck } from "lucide-react";
 import { Producto } from "@/types/producto";
 import { useProductoKardex } from "@/hooks/useProductos";
-
+import { formatCOP } from "@/utils/formatCOP";
 interface Props {
   producto: Producto | null;
   onClose: () => void;
 }
 
-function formatCOP(amount: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
 
 export default function ProductoKardexModal({ producto, onClose }: Props) {
   const { data, isLoading } = useProductoKardex(producto?.id ?? null);

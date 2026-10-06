@@ -15,6 +15,7 @@ import {
 import { useCrearCompra, useProveedores, useProductosPorProveedor } from "@/hooks/useCompras";
 import { ProductoCatalogo } from "@/services/compras.service";
 import ProveedorModal from "@/components/compras/ProveedorModal";
+import { formatCOP } from "@/utils/formatCOP";
 
 interface ItemCarrito {
   productoId: number;
@@ -29,9 +30,7 @@ interface FormularioCompraProps {
   onBack: () => void;
 }
 
-function formatCOP(n: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(n)}`;
-}
+
 
 export function FormularioCompra({ onBack }: FormularioCompraProps) {
   const [proveedorId, setProveedorId] = useState("");

@@ -3,10 +3,7 @@ import { Producto } from "@/types/producto";
 import ProductoStockBadge from "./ProductoStockBadge";
 import ProductoStatusBadge from "./ProductoStatusBadge";
 import ProductoActions from "./ProductoActions";
-
-function formatCOP(amount: number): string {
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 interface Props {
   productos: Producto[];

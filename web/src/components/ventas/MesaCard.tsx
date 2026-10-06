@@ -1,11 +1,6 @@
 import { Clock, ArrowUpRight, Receipt, Users2, Plus, UserCheck, Trash2 } from "lucide-react";
 import { Mesa } from "@/types/venta";
-
-function formatCOP(amount: number): string {
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
-  return `$${new Intl.NumberFormat("es-CO").format(amount)}`;
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 function calcularTiempo(aperturaAt?: string): string {
   if (!aperturaAt) return "";

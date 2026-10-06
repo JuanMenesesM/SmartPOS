@@ -23,6 +23,29 @@ const formatMoney = (amount: number): string => {
     }).format(amount);
 };
 
+const formatNIT = (raw: string | null | undefined): string => {
+    if (!raw) return "";
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+
+    // Si tiene guion (ej. 900123456-7 o 900.123.456-7)
+    if (trimmed.includes("-")) {
+        const parts = trimmed.split("-");
+        const numberPart = parts[0].replace(/\D/g, "");
+        const dvPart = parts.slice(1).join("").trim();
+        const formattedNumber = numberPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return dvPart ? `${formattedNumber}-${dvPart}` : formattedNumber;
+    }
+
+    // Si son solo dígitos (ej. 111222333 -> 111.222.333)
+    const digitsOnly = trimmed.replace(/\D/g, "");
+    if (digitsOnly.length > 0) {
+        return digitsOnly.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    return trimmed;
+};
+
 const formatDateShort = (date: Date): string => {
     return date.toLocaleDateString("es-CO", {
         day: "2-digit",
@@ -98,12 +121,12 @@ export const generarFacturaVenta = async (factura: FacturaVentaDTO): Promise<Buf
 
             currentY = doc.y + 2;
 
-            // NIT
+            // NIT Formateado Colombia (111.222.333 o 900.123.456-7)
             if (factura.empresa.nit) {
                 doc.font("Helvetica-Bold")
                    .fontSize(7.5)
                    .fillColor(PRIMARY_COLOR)
-                   .text(`NIT: ${factura.empresa.nit}`, MARGIN, currentY, { width: CONTENT, align: "center" });
+                   .text(`NIT: ${formatNIT(factura.empresa.nit)}`, MARGIN, currentY, { width: CONTENT, align: "center" });
                 currentY = doc.y + 2;
             }
 

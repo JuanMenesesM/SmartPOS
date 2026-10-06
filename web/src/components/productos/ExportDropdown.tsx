@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Producto } from "@/types/producto";
 import { ExportDropdown as UIExportDropdown } from "@/components/ui/ExportDropdown";
+import { formatCOP } from "@/utils/formatCOP";
 
 interface Props {
   productos: Producto[];
@@ -14,7 +15,7 @@ export default function ExportDropdown({ productos, disabled }: Props) {
     return productos.map((p) => [
       p.codigo,
       p.nombre,
-      `$${new Intl.NumberFormat("es-CO").format(p.precioVenta)}`,
+      formatCOP(p.precioVenta),
       p.stock,
       p.activo ? "Activo" : "Inactivo",
     ]);

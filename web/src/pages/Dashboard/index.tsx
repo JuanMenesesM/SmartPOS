@@ -15,22 +15,7 @@ import ProductosMasVendidosChart from "@/components/dashboard/ProductosMasVendid
 import StockCriticoTable from "@/components/dashboard/StockCriticoTable";
 import ActividadReciente from "@/components/dashboard/ActividadReciente";
 import InsightsIA from "@/components/dashboard/InsightsIA";
-
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatCOP(value: number): string {
-  if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(1)}M`;
-  }
-  if (value >= 1_000) {
-    return `$${(value / 1_000).toFixed(0)}K`;
-  }
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatCOP } from "@/utils/formatCOP";
 
 // ─── KPI Card ──────────────────────────────────────────────────────────────────
 

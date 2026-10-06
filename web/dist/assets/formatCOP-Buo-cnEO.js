@@ -1,0 +1,1 @@
+function r(t){return`$${new Intl.NumberFormat("es-CO").format(Math.round(t))}`}function m(t){return t>=1e6?`$${new Intl.NumberFormat("es-CO",{maximumFractionDigits:1}).format(t/1e6)}M`:t>=1e3?`$${new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(t/1e3)}K`:r(t)}export{m as a,r as f};

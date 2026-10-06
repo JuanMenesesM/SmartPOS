@@ -1,21 +1,23 @@
-import { useState, useEffect, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
-import { 
-  Building2, Globe2, FileText, Percent, Package, 
-  ShoppingCart, Database, Monitor, Save, X,
-  ChevronDown, Check
+import {
+  Building2,
+  FileText,
+  Phone,
+  Mail,
+  MapPin,
+  Globe2,
+  Receipt,
+  Save,
+  Loader2,
+  CheckCircle2,
+  Sparkles,
 } from "lucide-react";
-
 import { Empresa, EmpresaConfiguracion } from "@/types/empresa";
 import { getEmpresa, updateEmpresa, createEmpresa } from "@/services/empresa.service";
 
-type SettingsSection = 
-  | "general" | "comercial" | "facturacion" 
-  | "impuestos" | "inventario" | "ventas" 
-  | "respaldos" | "sistema";
-
-interface FormData extends Omit<Empresa, 'id' | 'activo' | 'configuracion'> {
+interface FormData extends Omit<Empresa, "id" | "activo" | "configuracion"> {
   configuracion: EmpresaConfiguracion;
 }
 
@@ -27,12 +29,12 @@ const DEFAULT_CONFIG: EmpresaConfiguracion = {
   formatoHora: "12h",
   prefijoFacturas: "POS-",
   numeroInicialFacturas: "1",
-  mensajePieFactura: "¡Gracias por su compra!",
+  mensajePieFactura: "¡Gracias por su compra! Vuelva pronto.",
   mostrarLogoFactura: true,
   mostrarDireccionFactura: true,
   mostrarTelefonoFactura: true,
   iva: "IVA",
-  porcentajeIva: "19",
+  porcentajeIva: "0",
   aplicarImpuestos: false,
   stockMinimoDefecto: "5",
   permitirStockNegativo: false,
@@ -42,99 +44,22 @@ const DEFAULT_CONFIG: EmpresaConfiguracion = {
   solicitarConfirmacionCobro: true,
 };
 
-// ── Componente Select Personalizado Estilo Compras ───────────────────────────────
-interface Option {
-  value: string;
-  label: string;
-}
-
-interface CustomSelectProps {
-  value: string;
-  onChange: (val: string) => void;
-  options: Option[];
-  placeholder?: string;
-  title: string;
-}
-
-function CustomSelect({ value, onChange, options, placeholder = "Seleccione...", title }: CustomSelectProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div ref={ref} className="relative w-full">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={`
-          w-full flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-semibold
-          transition-all duration-200 select-none
-          ${open || value
-            ? "bg-primary/10 text-primary border-primary/30 shadow-sm"
-            : "bg-background text-foreground border-border hover:bg-accent hover:border-border/80 shadow-sm"
-          }
-        `}
-      >
-        <span className="truncate">
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180 text-primary" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full mt-2 w-full z-50 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="px-3 pt-3 pb-1.5">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
-          </div>
-          <div className="p-1.5 space-y-0.5 max-h-52 overflow-y-auto custom-scrollbar">
-            {options.map((opt) => {
-              const isSelected = opt.value === value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value);
-                    setOpen(false);
-                  }}
-                  className={`
-                    w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-left
-                    transition-colors duration-150
-                    ${isSelected ? "bg-primary text-primary-foreground font-semibold" : "hover:bg-accent text-foreground"}
-                  `}
-                >
-                  <span className="truncate">{opt.label}</span>
-                  {isSelected && <Check className="h-3.5 w-3.5 shrink-0 ml-2" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Página de Empresa principal ──────────────────────────────────────────────────
 export default function EmpresaPage() {
-  const [activeTab, setActiveTab] = useState<SettingsSection>("general");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [empresaId, setEmpresaId] = useState<number | null>(null);
-  const [ultimoRespaldo, setUltimoRespaldo] = useState<string>("Nunca");
 
-  const { register, handleSubmit, control, reset } = useForm<FormData>();
+  const { register, handleSubmit, reset, watch } = useForm<FormData>();
+
+  const watchedNombre = watch("nombre");
+  const watchedNit = watch("nit");
+  const watchedTelefono = watch("telefono");
+  const watchedDireccion = watch("direccion");
+  const watchedCiudad = watch("ciudad");
+  const watchedPrefijo = watch("configuracion.prefijoFacturas") || "POS-";
+  const watchedPie = watch("configuracion.mensajePieFactura");
+  const watchedMostrarDir = watch("configuracion.mostrarDireccionFactura");
+  const watchedMostrarTel = watch("configuracion.mostrarTelefonoFactura");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,20 +67,19 @@ export default function EmpresaPage() {
         const data = await getEmpresa();
         setEmpresaId(data.id);
         const config = data.configuracion || DEFAULT_CONFIG;
-        
+
         reset({
-          nombre: data.nombre,
+          nombre: data.nombre || "",
           nit: data.nit || "",
           direccion: data.direccion || "",
           telefono: data.telefono || "",
           correo: data.correo || "",
           logo: data.logo || "",
           ciudad: data.ciudad || "",
-          configuracion: { ...DEFAULT_CONFIG, ...(typeof config === 'object' ? config : {}) }
+          configuracion: { ...DEFAULT_CONFIG, ...(typeof config === "object" ? config : {}) },
         });
       } catch (error: any) {
         if (error.response?.status === 404 || error.response?.status === 500) {
-          // Si no existe la empresa, resetear a valores por defecto
           reset({
             nombre: "",
             nit: "",
@@ -164,7 +88,7 @@ export default function EmpresaPage() {
             correo: "",
             logo: "",
             ciudad: "",
-            configuracion: DEFAULT_CONFIG
+            configuracion: DEFAULT_CONFIG,
           });
         }
       } finally {
@@ -179,364 +103,330 @@ export default function EmpresaPage() {
     try {
       if (empresaId) {
         await updateEmpresa(empresaId, data);
-        toast.success("Configuraciones guardadas");
+        toast.success("Información de empresa actualizada");
       } else {
         const nueva = await createEmpresa(data);
         setEmpresaId(nueva.id);
-        toast.success("Empresa creada y configuraciones guardadas");
+        toast.success("Empresa configurada exitosamente");
       }
     } catch (error) {
-      toast.error("Error al guardar las configuraciones");
+      toast.error("Error al guardar la información de la empresa");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleGenerarRespaldo = () => {
-    const data = {
-      empresa: "SmartPOS",
-      fecha: new Date().toISOString(),
-      version: "1.0.0",
-      mensaje: "Respaldo de prueba generado",
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `respaldo_smartpos_${new Date().getTime()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    const fechaFormat = new Date().toLocaleString("es-CO");
-    setUltimoRespaldo(fechaFormat);
-    toast.success("Respaldo descargado correctamente");
-  };
-
-  const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: SettingsSection }) => (
-    <button
-      type="button"
-      onClick={() => setActiveTab(id)}
-      className={`
-        w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all text-xs font-semibold
-        ${activeTab === id 
-          ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" 
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-        }
-      `}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </button>
-  );
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-120px)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center py-24">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground font-semibold">
+            Cargando datos de la empresa...
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="h-[calc(100vh-120px)] flex flex-col">
-      
-      {/* ── Encabezado Limpio y Cohesivo ─────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* ── Encabezado ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
           <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-primary via-primary/60 to-transparent mt-0.5 shrink-0" />
           <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Empresa
+            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent flex items-center gap-2">
+              Empresa y Facturación
+              <Sparkles className="h-5 w-5 text-primary" />
             </h1>
             <div className="inline-flex items-center gap-1.5 bg-muted/60 border border-border rounded-lg px-2.5 py-1">
-              <Building2 className="h-3 w-3 text-muted-foreground shrink-0" />
+              <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-xs font-medium text-muted-foreground">
-                Configuración general del negocio.
+                Datos comerciales y de contacto que aparecerán en las facturas y comprobantes.
               </span>
             </div>
           </div>
         </div>
+
+        {/* Botón Guardar Superior */}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              Guardar Cambios
+            </>
+          )}
+        </button>
       </div>
 
-      <div className="flex-1 flex gap-8 min-h-0">
-        {/* Sidebar */}
-        <div className="w-64 flex-shrink-0 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
-          <SidebarItem icon={Building2} label="1. Información General" id="general" />
-          <SidebarItem icon={Globe2} label="2. Información Comercial" id="comercial" />
-          <SidebarItem icon={FileText} label="3. Facturación" id="facturacion" />
-          <SidebarItem icon={Percent} label="4. Impuestos (Futuro)" id="impuestos" />
-          <SidebarItem icon={Package} label="5. Inventario" id="inventario" />
-          <SidebarItem icon={ShoppingCart} label="6. Ventas" id="ventas" />
-          <SidebarItem icon={Database} label="7. Respaldos (Futuro)" id="respaldos" />
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            
-            {/* 1. General */}
-            {activeTab === "general" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">1. Información General</h2>
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><Building2 className="h-3 w-3" /> Nombre de la empresa</label>
-                    <input {...register("nombre")} className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Ej. Mi Tienda Principal" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><FileText className="h-3 w-3" /> NIT</label>
-                    <input {...register("nit")} className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium font-mono" placeholder="Ej. 900.123.456-7" />
-                  </div>
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><FileText className="h-3 w-3" /> Razón Social</label>
-                    <input className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Igual al nombre si se deja vacío" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><Globe2 className="h-3 w-3" /> Correo</label>
-                    <input {...register("correo")} type="email" className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Ej. contacto@mitienda.com" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><FileText className="h-3 w-3" /> Teléfono</label>
-                    <input {...register("telefono")} className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Ej. 3001234567" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><Globe2 className="h-3 w-3" /> Dirección</label>
-                    <input {...register("direccion")} className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Ej. Calle Principal 123" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5 mb-1.5"><Globe2 className="h-3 w-3" /> Ciudad</label>
-                    <input {...register("ciudad")} className="w-full bg-background border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm placeholder:text-muted-foreground/50 text-foreground font-medium" placeholder="Ej. Bogotá" />
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Columna Izquierda: Formulario Principal (2 cols) ────────────────────── */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Card 1: Datos del Negocio */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-5">
+            <div className="flex items-center gap-3 pb-3 border-b border-border/60">
+              <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/20">
+                <Building2 className="h-5 w-5" />
               </div>
-            )}
-
-            {/* 2. Comercial */}
-            {activeTab === "comercial" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">2. Información Comercial</h2>
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Moneda</label>
-                    <Controller
-                      control={control}
-                      name="configuracion.moneda"
-                      render={({ field: { value, onChange } }) => (
-                        <CustomSelect
-                          value={value}
-                          onChange={onChange}
-                          title="Moneda"
-                          options={[
-                            { value: "COP", label: "Peso Colombiano (COP)" },
-                            { value: "USD", label: "Dólar Estadounidense (USD)" },
-                            { value: "EUR", label: "Euro (EUR)" },
-                          ]}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Símbolo</label>
-                    <input {...register("configuracion.simboloMoneda")} className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Zona Horaria</label>
-                    <Controller
-                      control={control}
-                      name="configuracion.zonaHoraria"
-                      render={({ field: { value, onChange } }) => (
-                        <CustomSelect
-                          value={value}
-                          onChange={onChange}
-                          title="Zona Horaria"
-                          options={[
-                            { value: "America/Bogota", label: "America/Bogota (GMT-5)" },
-                          ]}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Formato de Fecha</label>
-                    <Controller
-                      control={control}
-                      name="configuracion.formatoFecha"
-                      render={({ field: { value, onChange } }) => (
-                        <CustomSelect
-                          value={value}
-                          onChange={onChange}
-                          title="Formato de Fecha"
-                          options={[
-                            { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
-                            { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
-                            { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
-                          ]}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Datos del Negocio</h2>
+                <p className="text-xs text-muted-foreground">
+                  Información fiscal e identificación comercial
+                </p>
               </div>
-            )}
+            </div>
 
-            {/* 3. Facturacion */}
-            {activeTab === "facturacion" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">3. Facturación</h2>
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Prefijo Facturas</label>
-                    <input {...register("configuracion.prefijoFacturas")} className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Número Inicial</label>
-                    <input {...register("configuracion.numeroInicialFacturas")} className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all" />
-                  </div>
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Mensaje Pie de Factura</label>
-                    <textarea {...register("configuracion.mensajePieFactura")} rows={3} className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none" />
-                  </div>
-                  
-                  <div className="col-span-2 space-y-3 pt-4 border-t border-border/50">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" {...register("configuracion.mostrarLogoFactura")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                      <span className="text-xs font-semibold">Mostrar Logo en factura</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" {...register("configuracion.mostrarDireccionFactura")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                      <span className="text-xs font-semibold">Mostrar Dirección en factura</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" {...register("configuracion.mostrarTelefonoFactura")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                      <span className="text-xs font-semibold">Mostrar Teléfono en factura</span>
-                    </label>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Nombre de la Empresa */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Building2 className="h-3 w-3 text-primary" /> Nombre / Razón Social
+                </label>
+                <input
+                  required
+                  {...register("nombre")}
+                  placeholder="Ej. Mi Tienda Principal S.A.S."
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
+                />
               </div>
-            )}
 
-            {/* 4. Impuestos */}
-            {activeTab === "impuestos" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">4. Impuestos (Futuro)</h2>
-                <div className="grid grid-cols-2 gap-5 opacity-70 pointer-events-none">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Nombre de Impuesto</label>
-                    <input defaultValue="IVA" className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none transition-all" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Porcentaje (%)</label>
-                    <input defaultValue="19" className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none transition-all" />
-                  </div>
-                  <div className="col-span-2 pt-2">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase mb-3 block">¿Aplicar impuestos?</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="imp" className="text-primary" />
-                        <span className="text-sm font-semibold">Sí</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="imp" defaultChecked className="text-primary" />
-                        <span className="text-sm font-semibold">No</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+              {/* NIT */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <FileText className="h-3 w-3 text-primary" /> NIT / Documento Tributario
+                </label>
+                <input
+                  required
+                  {...register("nit")}
+                  placeholder="Ej. 900.123.456-7"
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-mono font-medium"
+                />
               </div>
-            )}
 
-            {/* 5. Inventario */}
-            {activeTab === "inventario" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">5. Inventario</h2>
-                <div className="grid gap-6">
-                  <div className="space-y-1.5 max-w-xs">
-                    <label className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Stock mínimo por defecto</label>
-                    <input {...register("configuracion.stockMinimoDefecto")} type="number" className="w-full bg-muted/40 border border-border rounded-xl px-3.5 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all" />
-                  </div>
-                  
-                  <div className="space-y-4 pt-4 border-t border-border/50">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" {...register("configuracion.permitirStockNegativo")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                      <div className="space-y-0.5">
-                        <span className="text-xs font-semibold block">Permitir stock negativo</span>
-                        <span className="text-[11px] text-muted-foreground block leading-tight">Permite vender productos aunque no haya existencias en el sistema.</span>
-                      </div>
-                    </label>
-                    
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" {...register("configuracion.alertarStockBajo")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                      <span className="text-xs font-semibold block">Alertar stock bajo</span>
-                    </label>
-                  </div>
-                </div>
+              {/* Teléfono */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Phone className="h-3 w-3 text-primary" /> Teléfono / WhatsApp
+                </label>
+                <input
+                  {...register("telefono")}
+                  placeholder="Ej. +57 300 123 4567"
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                />
               </div>
-            )}
 
-            {/* 6. Ventas */}
-            {activeTab === "ventas" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">6. Ventas</h2>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-xl border border-border bg-muted/30">
-                    <input type="checkbox" {...register("configuracion.abrirVentaAutomaticamente")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                    <span className="text-xs font-semibold">Abrir venta automáticamente</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-xl border border-border bg-muted/30">
-                    <input type="checkbox" {...register("configuracion.imprimirFacturaAutomaticamente")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                    <span className="text-xs font-semibold">Imprimir factura después de cobrar</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-xl border border-border bg-muted/30">
-                    <input type="checkbox" {...register("configuracion.solicitarConfirmacionCobro")} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                    <span className="text-xs font-semibold">Solicitar confirmación antes de cobrar</span>
-                  </label>
-                </div>
+              {/* Correo */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3 w-3 text-primary" /> Correo Electrónico
+                </label>
+                <input
+                  type="email"
+                  {...register("correo")}
+                  placeholder="contacto@mitienda.com"
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                />
               </div>
-            )}
 
-            {/* 7. Respaldos */}
-            {activeTab === "respaldos" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-lg font-bold">7. Respaldos (Futuro)</h2>
-                <div className="p-5 rounded-2xl border border-border bg-muted/20 space-y-4">
-                  <p className="text-xs text-muted-foreground">Último respaldo: <strong>{ultimoRespaldo}</strong></p>
-                  <div className="flex gap-3">
-                    <button 
-                      type="button" 
-                      onClick={handleGenerarRespaldo}
-                      className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-colors shadow-md shadow-primary/20"
-                    >
-                      Generar respaldo
-                    </button>
-                    <button type="button" className="px-4 py-2 rounded-xl border border-border font-semibold text-xs opacity-70 cursor-not-allowed">
-                      Restaurar respaldo
-                    </button>
-                  </div>
-                </div>
+              {/* Dirección */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 text-primary" /> Dirección Comercial
+                </label>
+                <input
+                  {...register("direccion")}
+                  placeholder="Ej. Carrera 15 # 45-20"
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                />
               </div>
-            )}
 
+              {/* Ciudad */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Globe2 className="h-3 w-3 text-primary" /> Ciudad / Municipio
+                </label>
+                <input
+                  {...register("ciudad")}
+                  placeholder="Ej. Bogotá, D.C."
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Footer Flotante */}
-          <div className="p-4 border-t border-border bg-muted/30 flex justify-end gap-3 shrink-0">
-            <button 
-              type="button" 
-              onClick={() => {
-                // Cancelar: recargar data original
-                window.location.reload();
-              }}
-              className="px-4 py-2.5 rounded-xl border border-border hover:bg-muted font-semibold text-xs transition-all duration-150 flex items-center gap-2"
-            >
-              <X className="h-4 w-4" /> Cancelar
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSaving}
-              className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs transition-all duration-150 flex items-center gap-2 shadow-md shadow-primary/20 disabled:opacity-70"
-            >
-              <Save className="h-4 w-4" /> 
-              {isSaving ? "Guardando..." : "Guardar Cambios"}
-            </button>
+          {/* Card 2: Configuración del Comprobante / Factura */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-5">
+            <div className="flex items-center gap-3 pb-3 border-b border-border/60">
+              <div className="h-10 w-10 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0 ring-1 ring-violet-500/20">
+                <Receipt className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Detalles del Comprobante</h2>
+                <p className="text-xs text-muted-foreground">
+                  Textos y opciones que se imprimen en el ticket
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Prefijo */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <FileText className="h-3 w-3 text-violet-500" /> Prefijo de Factura
+                </label>
+                <input
+                  {...register("configuracion.prefijoFacturas")}
+                  placeholder="Ej. POS-"
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all font-mono font-bold"
+                />
+              </div>
+
+              {/* Mensaje Pie de Factura */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Receipt className="h-3 w-3 text-violet-500" /> Mensaje en Pie de Factura
+                </label>
+                <textarea
+                  rows={2}
+                  {...register("configuracion.mensajePieFactura")}
+                  placeholder="Ej. ¡Gracias por su compra! Vuelva pronto."
+                  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:bg-background focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all resize-none font-medium"
+                />
+              </div>
+
+              {/* Opciones visuales del ticket */}
+              <div className="sm:col-span-2 pt-2 space-y-2.5">
+                <label className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    {...register("configuracion.mostrarDireccionFactura")}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/30 border-border"
+                  />
+                  <div className="text-xs">
+                    <span className="font-bold text-foreground block">
+                      Incluir dirección en el ticket
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      Imprime la dirección y ciudad en el encabezado de la factura.
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    {...register("configuracion.mostrarTelefonoFactura")}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/30 border-border"
+                  />
+                  <div className="text-xs">
+                    <span className="font-bold text-foreground block">
+                      Incluir teléfono en el ticket
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      Imprime el número telefónico para contacto del cliente.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Columna Derecha: Vista Previa del Ticket (1 col) ────────────────────── */}
+        <div className="space-y-4">
+          <div className="sticky top-6">
+            <div className="bg-card border border-border rounded-3xl p-5 shadow-md space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Receipt className="h-3.5 w-3.5 text-primary" /> Vista Previa del Ticket
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  Formato POS
+                </span>
+              </div>
+
+              {/* Simulación del Ticket */}
+              <div className="bg-muted/40 border border-dashed border-border/80 rounded-2xl p-4 font-mono text-[11px] text-foreground space-y-3 shadow-inner">
+                {/* Cabecera Ticket */}
+                <div className="text-center space-y-0.5 pb-2 border-b border-dashed border-border">
+                  <p className="font-extrabold text-xs text-foreground uppercase truncate">
+                    {watchedNombre || "NOMBRE DE LA EMPRESA"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    NIT: {watchedNit || "000.000.000-0"}
+                  </p>
+                  {watchedMostrarDir && (
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {watchedDireccion || "Dirección Comercial"}
+                      {watchedCiudad ? ` - ${watchedCiudad}` : ""}
+                    </p>
+                  )}
+                  {watchedMostrarTel && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Tel: {watchedTelefono || "(300) 000-0000"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Info Factura */}
+                <div className="text-[10px] space-y-0.5 text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Factura:</span>
+                    <span className="font-bold text-foreground">{watchedPrefijo}0001</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Fecha:</span>
+                    <span>{new Date().toLocaleDateString("es-CO")}</span>
+                  </div>
+                </div>
+
+                {/* Línea Items Muestra */}
+                <div className="border-t border-b border-dashed border-border py-1.5 space-y-1 text-[10px]">
+                  <div className="flex justify-between">
+                    <span className="truncate max-w-[140px]">1 × Producto Muestra</span>
+                    <span className="font-semibold">$15.000</span>
+                  </div>
+                  <div className="flex justify-between font-extrabold text-xs pt-1 border-t border-border/40 text-foreground">
+                    <span>TOTAL:</span>
+                    <span>$15.000</span>
+                  </div>
+                </div>
+
+                {/* Pie de ticket */}
+                <div className="text-center pt-1 text-[10px] text-muted-foreground italic">
+                  <p>{watchedPie || "¡Gracias por su compra!"}</p>
+                </div>
+              </div>
+
+              {/* Botón Guardar Inferior */}
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs shadow-md shadow-primary/25 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Guardar Configuración
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

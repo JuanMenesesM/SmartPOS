@@ -132,103 +132,112 @@ export default function HistorialTab() {
       {/* Modal Detalle de Factura Centralizado */}
       {ventaDetalle && (
         <ModalPortal>
-        <div className="fixed inset-0 z-[9998] bg-background/80 backdrop-blur-md animate-in fade-in duration-200" onClick={() => setVentaDetalle(null)} />
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-6 px-4 pointer-events-none">
-          <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col pointer-events-auto">
-            {/* Cabecera */}
-            <div className="px-4 py-2.5 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Receipt className="h-4 w-4" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-extrabold text-foreground leading-tight">
-                    FAC-{String(ventaDetalle.id).padStart(4, "0")}
-                  </h2>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Comprobante de Venta</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setVentaDetalle(null)}
-                className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              >
-                ✕
-              </button>
-            </div>
+          <div
+            className="fixed inset-0 z-[9998] bg-background/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setVentaDetalle(null)}
+          />
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+            <div className="w-full max-w-md bg-card border border-border/80 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col pointer-events-auto max-h-[90vh]">
+              {/* Barra de acento superior */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-violet-500 to-blue-500 shrink-0" />
 
-            {/* Cuerpo */}
-            <div className="p-3.5 space-y-3">
-              <div className="grid grid-cols-2 gap-px bg-border rounded-lg overflow-hidden border border-border">
-                <div className="bg-card px-3 py-2 space-y-0.5 flex flex-col items-center text-center">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Fecha</p>
-                  <p className="text-xs font-semibold text-foreground">
-                    {new Date(ventaDetalle.fecha).toLocaleDateString("es-CO", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
+              {/* Cabecera */}
+              <div className="px-6 py-4 border-b border-border/60 flex items-center justify-between bg-muted/20 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/20 shadow-sm">
+                    <Receipt className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-extrabold text-foreground leading-tight">
+                      FAC-{String(ventaDetalle.id).padStart(4, "0")}
+                    </h2>
+                    <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+                      Comprobante de Venta
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-card px-3 py-2 space-y-0.5 flex flex-col items-center text-center">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Atendido por</p>
-                  <p className="text-xs font-semibold text-foreground">
-                    {ventaDetalle.usuario.nombre} {ventaDetalle.usuario.apellido || ""}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setVentaDetalle(null)}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border/60"
+                >
+                  ✕
+                </button>
               </div>
 
-              {/* Lista de productos */}
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Productos ({ventaDetalle.detalles.length})
-                </p>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                  {ventaDetalle.detalles.map((d) => (
-                    <div
-                      key={d.id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/60"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">{d.producto.nombre}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
-                          {d.cantidad} un. x {formatCOP(d.precioUnitario)}
-                        </p>
+              {/* Cuerpo */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/30 border border-border/60 rounded-2xl px-4 py-3 space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fecha</p>
+                    <p className="text-xs font-semibold text-foreground">
+                      {new Date(ventaDetalle.fecha).toLocaleDateString("es-CO", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 border border-border/60 rounded-2xl px-4 py-3 space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Atendido por</p>
+                    <p className="text-xs font-semibold text-foreground truncate">
+                      {ventaDetalle.usuario.nombre} {ventaDetalle.usuario.apellido || ""}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Lista de productos */}
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Productos ({ventaDetalle.detalles.length})
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {ventaDetalle.detalles.map((d) => (
+                      <div
+                        key={d.id}
+                        className="flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/60"
+                      >
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="text-xs font-bold text-foreground truncate">{d.producto.nombre}</p>
+                          <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                            {d.cantidad} un. × {formatCOP(d.precioUnitario)}
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-foreground font-mono shrink-0">
+                          {formatCOP(d.subtotal)}
+                        </span>
                       </div>
-                      <span className="text-xs font-extrabold text-foreground font-mono ml-2 shrink-0">
-                        {formatCOP(d.subtotal)}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/20 flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">Total Facturado</span>
+                  <span className="text-xl font-black text-primary font-mono">
+                    {formatCOP(ventaDetalle.total)}
+                  </span>
                 </div>
               </div>
 
-              {/* Total */}
-              <div className="p-3 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Facturado</span>
-                <span className="text-lg font-extrabold text-primary font-mono">
-                  {formatCOP(ventaDetalle.total)}
-                </span>
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-border/60 bg-muted/10 flex items-center justify-between shrink-0">
+                <button
+                  onClick={() => handleDescargarPDF(ventaDetalle.id)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-md shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar PDF
+                </button>
+                <button
+                  onClick={() => setVentaDetalle(null)}
+                  className="px-5 py-2.5 text-xs font-semibold rounded-xl border border-border hover:bg-muted text-foreground transition-colors"
+                >
+                  Cerrar
+                </button>
               </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 py-2 border-t border-border bg-muted/20 flex items-center justify-between shrink-0">
-              <button
-                onClick={() => handleDescargarPDF(ventaDetalle.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Descargar PDF
-              </button>
-              <button
-                onClick={() => setVentaDetalle(null)}
-                className="px-5 py-2 text-xs font-semibold rounded-xl bg-muted hover:bg-accent text-foreground transition-colors"
-              >
-                Cerrar
-              </button>
             </div>
           </div>
-        </div>
         </ModalPortal>
       )}
     </div>

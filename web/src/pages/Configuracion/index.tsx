@@ -18,8 +18,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useUsuarios } from "@/hooks/useUsuarios";
-import { actualizarUsuario, crearUsuario } from "@/services/usuarios.service";
-import { Plus, X } from "lucide-react";
+import { actualizarUsuario } from "@/services/usuarios.service";
+import UsuarioModal from "@/components/usuarios/UsuarioModal";
+import { Plus } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -139,30 +140,6 @@ function GeneralTab() {
 function UsuariosTab() {
   const { data: usuarios = [], isLoading, refetch } = useUsuarios();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-    correo: "",
-    contrasena: "",
-    rolId: 2,
-  });
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await crearUsuario(formData);
-      setIsModalOpen(false);
-      setFormData({ nombre: "", apellido: "", correo: "", contrasena: "", rolId: 2 });
-      refetch();
-    } catch (error) {
-      console.error(error);
-      alert("Error al crear usuario");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -286,59 +263,11 @@ function UsuariosTab() {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-card border border-border rounded-3xl shadow-2xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-foreground">Nuevo Usuario</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">Nombre</label>
-                  <input required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm" placeholder="Ej. Carlos" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">Apellido</label>
-                  <input required value={formData.apellido} onChange={e => setFormData({...formData, apellido: e.target.value})} className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm" placeholder="Ej. Pérez" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Correo Electrónico</label>
-                <input type="email" required value={formData.correo} onChange={e => setFormData({...formData, correo: e.target.value})} className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm" placeholder="carlos@empresa.com" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Empresa Asignada</label>
-                <div className="w-full px-3 py-2 rounded-xl bg-muted/80 border border-border text-sm text-muted-foreground font-semibold cursor-not-allowed flex items-center bg-muted">
-                  Empresa Actual (Bloqueado)
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Contraseña</label>
-                <input type="password" required value={formData.contrasena} onChange={e => setFormData({...formData, contrasena: e.target.value})} className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm" placeholder="••••••••" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Rol</label>
-                <select value={formData.rolId} onChange={e => setFormData({...formData, rolId: Number(e.target.value)})} className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm outline-none">
-                  <option value={1}>Administrador</option>
-                  <option value={2}>Cajero</option>
-                  <option value={3}>Bodeguero</option>
-                </select>
-              </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-xs font-semibold border border-border hover:bg-muted">Cancelar</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-                  {isSubmitting ? "Creando..." : "Crear Usuario"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <UsuarioModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

@@ -7,6 +7,9 @@ export interface FacturaVentaDTO {
         correo?: string | null;
         ciudad?: string | null;
         logo?: string | null;
+        mensajePieFactura?: string | null;
+        mostrarDireccionFactura?: boolean;
+        mostrarTelefonoFactura?: boolean;
     };
 
     venta: {
@@ -14,7 +17,8 @@ export interface FacturaVentaDTO {
         numeroFactura: string;
         fecha: Date;
         cliente: string | "Consumidor Final";
-        vendedor: string
+        vendedor: string;
+        metodoPago?: string;
     };
 
     detalles: {
@@ -25,7 +29,7 @@ export interface FacturaVentaDTO {
     }[];
 
     totales: {
-        moneda: "COP",
+        moneda: "COP";
         subtotal: number;
         descuentos: number;
         impuestos: number;

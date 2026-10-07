@@ -43,10 +43,10 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
 
             <div className="space-y-0.5">
               <div className="flex items-center justify-center gap-1.5">
-                <h2 className="text-sm font-extrabold text-foreground tracking-tight">
+                <h2 className="text-xl font-extrabold text-foreground tracking-tight">
                   {producto.nombre}
                 </h2>
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-muted text-muted-foreground border border-border/80">
+                <span className="text-[15px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-muted text-muted-foreground border border-border/80">
                   {producto.codigo}
                 </span>
               </div>
@@ -69,7 +69,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
                   Stock Disponible
                 </span>
                 <p className="text-2xl font-black text-foreground font-mono mt-0.5">
-                  {producto.stock} <span className="text-xs font-normal text-muted-foreground">un.</span>
+                  {producto.stock} <span className="text-sm font-normal text-muted-foreground">un.</span>
                 </p>
               </div>
 
@@ -91,7 +91,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
                 Auditoría y Trazabilidad
               </h3>
               {data?.movimientos && (
-                <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.2 rounded-full border border-border/50">
+                <span className="text-[12px] font-bold text-muted-foreground bg-muted px-2 py-0.2 rounded-full border border-border/50">
                   {data.movimientos.length} eventos
                 </span>
               )}
@@ -139,7 +139,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">
+                          <p className="text-[13px] font-bold text-foreground truncate">
                             {m.tipo === "VENTA"
                               ? `Venta Facturada`
                               : m.tipo === "COMPRA"
@@ -147,7 +147,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
                               : `Ajuste de Inventario`}
                             {m.observacion ? ` — ${m.observacion}` : ""}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                          <p className="text-[12px] text-muted-foreground mt-0.5">
                             {new Date(m.fecha).toLocaleString("es-CO", {
                               day: "numeric",
                               month: "short",
@@ -161,7 +161,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
 
                       <div className="text-right shrink-0 ml-3">
                         <p
-                          className={`text-xs font-black font-mono ${
+                          className={`text-[13px] font-black font-mono ${
                             esVenta
                               ? "text-rose-600 dark:text-rose-400"
                               : esCompra
@@ -171,7 +171,7 @@ export default function ProductoKardexModal({ producto, onClose }: Props) {
                         >
                           {esVenta ? `-${m.cantidad}` : `+${m.cantidad}`}
                         </p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
+                        <p className="text-[12px] text-muted-foreground font-mono">
                           {m.stockAnterior} → {m.stockNuevo}
                         </p>
                       </div>

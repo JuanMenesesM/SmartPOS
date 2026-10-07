@@ -68,12 +68,13 @@ export default function MesaPOSPage() {
       nombre: p.nombre,
       precioUnitario: p.precioVenta,
       cantidad: 1,
-    });
+    }, p.stock);
     setMesa(actualizada);
   };
 
   const handleModificarCantidad = (productoId: number, delta: number) => {
-    const actualizada = modificarCantidadItemMesa(mesa.id, productoId, delta);
+    const prod = productos.find(p => p.id === productoId);
+    const actualizada = modificarCantidadItemMesa(mesa.id, productoId, delta, prod?.stock);
     setMesa(actualizada);
   };
 
@@ -280,7 +281,9 @@ export default function MesaPOSPage() {
                       </span>
                       <button
                         onClick={() => handleModificarCantidad(item.productoId, 1)}
-                        className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                        disabled={item.cantidad >= (productos.find(p => p.id === item.productoId)?.stock ?? item.cantidad)}
+                        className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={item.cantidad >= (productos.find(p => p.id === item.productoId)?.stock ?? item.cantidad) ? "Stock máximo alcanzado" : undefined}
                       >
                         <Plus className="h-3 w-3" />
                       </button>

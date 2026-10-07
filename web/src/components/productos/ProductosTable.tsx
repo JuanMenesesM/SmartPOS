@@ -70,8 +70,8 @@ export default function ProductosTable({
           <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur-md border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             <tr>
               <th className="py-3 px-4 font-bold text-center">Código</th>
-              <th className="py-3 px-4 font-bold text-left">Producto</th>
-              <th className="py-3 px-4 font-bold text-right">Precio</th>
+              <th className="py-3 px-4 font-bold text-center">Producto</th>
+              <th className="py-3 px-4 font-bold text-center">Precio</th>
               <th className="py-3 px-4 font-bold text-center">Stock</th>
               <th className="py-3 px-4 font-bold text-center">Estado</th>
               <th className="py-3 px-4 font-bold text-center">Acciones</th>
@@ -91,12 +91,12 @@ export default function ProductosTable({
                 </td>
 
                 {/* Producto */}
-                <td className="py-3 px-4 font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                <td className="py-3 px-4 font-bold text-sm text-foreground group-hover:text-primary transition-colors text-center">
                   {p.nombre}
                 </td>
 
                 {/* Precio */}
-                <td className="py-3 px-4 text-right font-mono font-bold text-foreground">
+                <td className="py-3 px-4 font-mono font-bold text-foreground text-center">
                   {formatCOP(p.precioVenta)}
                 </td>
 

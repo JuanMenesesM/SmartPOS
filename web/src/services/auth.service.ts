@@ -54,7 +54,42 @@ export function clearAuth() {
   localStorage.removeItem("usuario");
 }
 
-/** Verifica si hay token */
+/** Decodifica el payload del JWT sin verificar firma */
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const base64Url = token.split(".")[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+/** Verifica si hay token y que no haya expirado */
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    // Token malformado → limpiar
+    clearAuth();
+    return false;
+  }
+
+  const exp = payload["exp"] as number | undefined;
+  if (exp && Date.now() / 1000 > exp) {
+    // Token expirado → limpiar
+    clearAuth();
+    return false;
+  }
+
+  return true;
 }

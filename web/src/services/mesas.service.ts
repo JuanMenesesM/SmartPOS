@@ -88,7 +88,11 @@ export function actualizarMesa(id: string, partial: Partial<Mesa>): Mesa {
   return updated;
 }
 
-export function agregarItemMesa(mesaId: string, item: Omit<ItemCarritoMesa, "subtotal">): Mesa {
+export function agregarItemMesa(
+  mesaId: string,
+  item: Omit<ItemCarritoMesa, "subtotal">,
+  stockDisponible: number
+): Mesa {
   const mesa = getMesaById(mesaId);
   if (!mesa) throw new Error("Mesa no encontrada");
 
@@ -97,14 +101,15 @@ export function agregarItemMesa(mesaId: string, item: Omit<ItemCarritoMesa, "sub
 
   if (idx >= 0) {
     const prev = carrito[idx];
-    const nuevaCant = prev.cantidad + item.cantidad;
+    const nuevaCant = Math.min(prev.cantidad + item.cantidad, stockDisponible);
     carrito[idx] = {
       ...prev,
       cantidad: nuevaCant,
       subtotal: nuevaCant * prev.precioUnitario,
     };
   } else {
-    carrito.push({ ...item, subtotal: item.cantidad * item.precioUnitario });
+    const cantidad = Math.min(item.cantidad, stockDisponible);
+    carrito.push({ ...item, cantidad, subtotal: cantidad * item.precioUnitario });
   }
 
   // Asignar mesero del usuario logueado al abrir la mesa por primera vez
@@ -120,7 +125,8 @@ export function agregarItemMesa(mesaId: string, item: Omit<ItemCarritoMesa, "sub
 export function modificarCantidadItemMesa(
   mesaId: string,
   productoId: number,
-  delta: number
+  delta: number,
+  stockDisponible?: number
 ): Mesa {
   const mesa = getMesaById(mesaId);
   if (!mesa) throw new Error("Mesa no encontrada");
@@ -134,10 +140,14 @@ export function modificarCantidadItemMesa(
     if (nuevaCant <= 0) {
       carrito.splice(idx, 1);
     } else {
+      // No superar el stock disponible si se provee
+      const cantFinal = stockDisponible !== undefined
+        ? Math.min(nuevaCant, stockDisponible)
+        : nuevaCant;
       carrito[idx] = {
         ...item,
-        cantidad: nuevaCant,
-        subtotal: nuevaCant * item.precioUnitario,
+        cantidad: cantFinal,
+        subtotal: cantFinal * item.precioUnitario,
       };
     }
   }

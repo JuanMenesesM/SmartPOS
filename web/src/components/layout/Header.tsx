@@ -141,7 +141,7 @@ export default function Header({ onMenuOpen }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 shrink-0 flex items-center justify-between gap-4 px-4 md:px-6 bg-card border-b border-border z-50">
+    <header className="sticky top-0 h-16 shrink-0 flex items-center justify-between gap-4 px-4 md:px-6 bg-card/80 backdrop-blur-md border-b border-border z-50">
 
       {/* Lado izquierdo */}
       <div className="flex items-center gap-3 min-w-0">

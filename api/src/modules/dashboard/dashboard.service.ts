@@ -23,7 +23,11 @@ export const obtenerDashboard = async (filtro?: DashboardFiltro): Promise<Dashbo
         actividad,
         ventasDetalle,
         detalleVentas,
-        stockCritico
+        stockCritico,
+        comprasRango,
+        comprasRangoCount,
+        ventasHoyCount,
+        comprasHoyCount
     ] = await Promise.all([
 
         // Ventas totales en el rango seleccionado
@@ -48,9 +52,9 @@ export const obtenerDashboard = async (filtro?: DashboardFiltro): Promise<Dashbo
             where: { stock: { lte: 5 } }
         }),
 
-        // Actividad reciente — últimas 5 entradas (no depende del rango)
+        // Actividad reciente — últimas 20 entradas (para permitir scroll fluido tras 5)
         prisma.auditoria.findMany({
-            take: 5,
+            take: 20,
             orderBy: { fecha: "desc" },
             include: { usuario: true }
         }),
@@ -80,6 +84,27 @@ export const obtenerDashboard = async (filtro?: DashboardFiltro): Promise<Dashbo
             select: { id: true, codigo: true, nombre: true, stock: true },
             orderBy: { stock: "asc" },
             take: 5
+        }),
+
+        // Compras totales en el rango seleccionado
+        prisma.compra.aggregate({
+            _sum: { total: true },
+            where: { fecha: { gte: inicio, lte: fin }, activo: true }
+        }),
+
+        // Número de compras en el rango seleccionado
+        prisma.compra.count({
+            where: { fecha: { gte: inicio, lte: fin }, activo: true }
+        }),
+
+        // Ventas del día de hoy (comprobantes emitidos hoy)
+        prisma.venta.count({
+            where: { fecha: { gte: inicioHoy } }
+        }),
+
+        // Compras del día de hoy (adquisiciones registradas hoy)
+        prisma.compra.count({
+            where: { fecha: { gte: inicioHoy }, activo: true }
         })
     ]);
 
@@ -117,19 +142,34 @@ export const obtenerDashboard = async (filtro?: DashboardFiltro): Promise<Dashbo
         .sort((a, b) => b.cantidad - a.cantidad)
         .slice(0, 5);
 
+    const totalVentas = ventasRango._sum.total ?? 0;
+    const totalCompras = comprasRango._sum.total ?? 0;
+    const ganancias = totalVentas - totalCompras;
+    const transaccionesRango = facturasRango + comprasRangoCount;
+    const transaccionesHoy = ventasHoyCount + comprasHoyCount;
+
     return {
         kpis: {
+            ventas: totalVentas,
+            compras: totalCompras,
+            ganancias,
+            transacciones: transaccionesRango,
+            ventasCount: facturasRango,
+            comprasCount: comprasRangoCount,
+            transaccionesHoy,
+            ventasHoyCount,
+            comprasHoyCount,
+            stockBajo,
             ventasHoy: ventasHoy._sum.total ?? 0,
-            ventasMes: ventasRango._sum.total ?? 0,   // ahora es "ventas en el rango"
-            facturasHoy: facturasRango,
-            stockBajo
+            ventasMes: totalVentas,
+            facturasHoy: facturasRango
         },
         ventasPorDia,
         productosMasVendidos,
         stockCritico,
         actividadReciente: actividad.map(a => ({
             fecha: a.fecha,
-            usuario: `${a.usuario.nombre} ${a.usuario.apellido}`,
+            usuario: `${a.usuario.nombre} ${a.usuario.apellido || ""}`.trim(),
             descripcion: a.descripcion
         }))
     };

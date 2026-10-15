@@ -1,1 +1,19 @@
+# Dependencias
 node_modules
+
+# Build / artefactos de compilación
+dist
+*.tsbuildinfo
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

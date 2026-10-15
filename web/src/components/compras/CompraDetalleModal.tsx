@@ -1,7 +1,6 @@
-import { X, ShoppingBag, Calendar, User, Hash, Package } from "lucide-react";
+import { X, ShoppingBag, Calendar, User, Building2, Package, BadgeCheck, TrendingUp } from "lucide-react";
 import ModalPortal from "@/components/ui/ModalPortal";
 import { CompraAPI } from "@/services/compras.service";
-import CompraStatusBadge from "./CompraStatusBadge";
 import { formatCOP } from "@/utils/formatCOP";
 
 interface Props {
@@ -14,101 +13,148 @@ export default function CompraDetalleModal({ compra, onClose }: Props) {
 
   const facturaNum = `FC-${String(compra.id).padStart(4, "0")}`;
 
+  const fechaFormateada = new Date(compra.fecha).toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const horaFormateada = new Date(compra.fecha).toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <ModalPortal>
-      <div 
-        className="fixed inset-0 w-full h-full bg-background/80 backdrop-blur-md z-[9998] transition-opacity"
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
       />
+
+      {/* Modal */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-        <div className="w-full max-w-md bg-card border border-border rounded-3xl shadow-2xl overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200 flex flex-col">
+        <div className="w-full max-w-md bg-card border border-border/60 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto animate-in zoom-in-95 fade-in duration-200 flex flex-col max-h-[92vh]">
 
-          {/* Borde superior decorativo con gradiente */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-primary/40 via-primary to-primary/40 shrink-0" />
+          {/* -- Hero header with gradient -- */}
+          <div className="relative bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 pt-6 pb-8 text-white shrink-0 overflow-hidden">
+            {/* Decorative circles */}
+            <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-black/10 blur-xl pointer-events-none" />
 
-          {/* ── Cabecera ───────────────────────────────────────────────────────── */}
-          <div className="relative px-6 pt-4 pb-3 flex flex-col items-center text-center border-b border-border shrink-0">
+            {/* Close button with darker hover and cursor-pointer */}
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              type="button"
+              className="absolute right-4 top-4 z-20 h-8 w-8 rounded-xl bg-black/15 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/90 hover:bg-black/40 hover:text-white transition-all cursor-pointer active:scale-95 select-none"
+              aria-label="Cerrar modal"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 pointer-events-none" />
             </button>
 
-            <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-2 shadow-sm">
-              <ShoppingBag className="h-6 w-6" />
+            {/* Icon + title */}
+            <div className="flex flex-col items-center text-center relative z-10">
+              <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center mb-3 shadow-xl">
+                <ShoppingBag className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-white">{facturaNum}</h2>
+              <p className="text-sm text-white/85 mt-0.5 font-normal">Detalle de Compra</p>
             </div>
-
-            <h2 className="text-lg font-extrabold text-foreground tracking-tight">
-              {facturaNum}
-            </h2>
-            <p className="text-xs text-muted-foreground">Detalle de Compra y Proveedor</p>
           </div>
 
-          {/* ── Cuerpo (Sin Scroll) ────────────────────────────────────────────── */}
-          <div className="p-5 space-y-3">
-            {/* Grid de información principal */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-2.5 rounded-2xl border border-border bg-card/50 space-y-0.5 text-center flex flex-col items-center justify-center">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 text-primary" /> Fecha
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  {new Date(compra.fecha).toLocaleDateString("es-CO", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
+          {/* Wave separator */}
+          <div className="h-4 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 shrink-0 relative">
+            <div className="absolute inset-0 bg-card rounded-t-3xl" />
+          </div>
+
+          {/* -- Body -- */}
+          <div className="px-5 pb-5 space-y-4 overflow-y-auto flex-1">
+
+            {/* Ficha Técnica de la Compra (Diseño elegante y sobrio) */}
+            <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40 overflow-hidden text-xs">
+              {/* Fecha */}
+              <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/15 transition-colors">
+                <div className="flex items-center gap-2.5 text-muted-foreground">
+                  <Calendar className="h-4 w-4 text-muted-foreground/70" />
+                  <span className="font-medium text-muted-foreground">Fecha de compra</span>
+                </div>
+                <div className="text-right font-medium text-foreground">
+                  <span>{fechaFormateada}</span>
+                  <span className="text-muted-foreground/60 mx-1.5">•</span>
+                  <span className="text-muted-foreground">{horaFormateada}</span>
+                </div>
               </div>
 
-              <div className="p-2.5 rounded-2xl border border-border bg-card/50 space-y-0.5 text-center flex flex-col items-center justify-center">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <User className="h-3.5 w-3.5 text-primary" /> Usuario
-                </p>
-                <p className="text-sm font-semibold text-foreground truncate max-w-full px-1">
-                  {compra.usuario.nombre} {compra.usuario.apellido || ""}
-                </p>
+              {/* Registrado por */}
+              <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/15 transition-colors">
+                <div className="flex items-center gap-2.5 text-muted-foreground">
+                  <User className="h-4 w-4 text-muted-foreground/70" />
+                  <span className="font-medium text-muted-foreground">Registrado por</span>
+                </div>
+                <div className="font-medium text-foreground">
+                  <span>
+                    {compra.usuario.nombre} {compra.usuario.apellido || ""}
+                  </span>
+                </div>
               </div>
 
-              <div className="p-2.5 rounded-2xl border border-border bg-card/50 space-y-0.5 text-center flex flex-col items-center justify-center">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Hash className="h-3.5 w-3.5 text-primary" /> Proveedor
-                </p>
-                <p className="text-sm font-semibold text-foreground truncate max-w-full px-1">{compra.proveedor.nombre}</p>
-                {compra.proveedor.nit && (
-                  <p className="text-[11px] font-mono text-muted-foreground">NIT: {compra.proveedor.nit}</p>
-                )}
+              {/* Proveedor */}
+              <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/15 transition-colors">
+                <div className="flex items-center gap-2.5 text-muted-foreground">
+                  <Building2 className="h-4 w-4 text-muted-foreground/70" />
+                  <span className="font-medium text-muted-foreground">Proveedor</span>
+                </div>
+                <div className="text-right font-medium text-foreground">
+                  <span className="truncate max-w-[200px] block">{compra.proveedor.nombre}</span>
+                  {compra.proveedor.nit && (
+                    <span className="text-[10px] font-mono text-muted-foreground block">NIT: {compra.proveedor.nit}</span>
+                  )}
+                </div>
               </div>
 
-              <div className="p-2.5 rounded-2xl border border-border bg-card/50 space-y-0.5 text-center flex flex-col items-center justify-center">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Package className="h-3.5 w-3.5 text-primary" /> Estado
-                </p>
-                <div className="pt-0.5 scale-105">
-                  <CompraStatusBadge activo={compra.activo} />
+              {/* Estado */}
+              <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/15 transition-colors">
+                <div className="flex items-center gap-2.5 text-muted-foreground">
+                  <BadgeCheck className="h-4 w-4 text-muted-foreground/70" />
+                  <span className="font-medium text-muted-foreground">Estado</span>
+                </div>
+                <div>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium
+                    ${compra.activo
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                      : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"
+                    }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${compra.activo ? "bg-emerald-500" : "bg-rose-500"}`} />
+                    {compra.activo ? "Activa" : "Anulada"}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Productos */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-extrabold uppercase tracking-wider text-foreground">
-                Productos ({compra.detalles.length})
-              </p>
-              <div className="space-y-1.5">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground/70" />
+                  <span className="text-xs font-semibold text-foreground">Productos en orden</span>
+                </div>
+                <span className="text-[11px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full border border-border/50">
+                  {compra.detalles.length} Item{compra.detalles.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
                 {compra.detalles.map((d) => (
                   <div
                     key={d.id}
-                    className="flex items-center justify-between px-3 py-2 rounded-2xl border border-border bg-card/40"
+                    className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-card border border-border/60 hover:border-border transition-all duration-150"
                   >
-                    <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-xs font-bold text-foreground truncate">{d.producto.nombre}</p>
-                      <p className="text-[11px] font-mono text-muted-foreground">
-                        {d.producto.codigo} · {d.cantidad} uds × {formatCOP(d.precioCompra)}
+                    <div className="flex-1 min-w-0 pr-3">
+                      <p className="text-xs font-medium text-foreground truncate">{d.producto.nombre}</p>
+                      <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                        {d.producto.codigo} • {d.cantidad} uds • {formatCOP(d.precioCompra)}
                       </p>
                     </div>
-                    <span className="font-mono font-bold text-xs text-foreground shrink-0">
+                    <span className="text-xs font-semibold text-foreground font-mono shrink-0">
                       {formatCOP(d.subtotal)}
                     </span>
                   </div>
@@ -116,27 +162,27 @@ export default function CompraDetalleModal({ compra, onClose }: Props) {
               </div>
             </div>
 
-            {/* Total Factura Box */}
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-primary/5 border border-primary/15">
-              <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                Total Factura
-              </span>
-              <span className="text-base font-extrabold text-primary font-mono">
+            {/* Total */}
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-muted/20 border border-border/60">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-xs font-semibold text-foreground">Total Factura</span>
+              </div>
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">
                 {formatCOP(compra.total)}
               </span>
             </div>
           </div>
 
-          {/* ── Footer ─────────────────────────────────────────────────────────── */}
-          <div className="px-5 py-3 border-t border-border flex items-center justify-end bg-muted/20 shrink-0">
+          {/* -- Footer -- */}
+          <div className="px-5 py-3.5 border-t border-border/60 bg-muted/20 flex items-center justify-end shrink-0">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-2xl bg-primary text-primary-foreground text-xs font-bold shadow-md hover:bg-primary/90 transition-all"
+              className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               Cerrar Detalles
             </button>
           </div>
-
         </div>
       </div>
     </ModalPortal>

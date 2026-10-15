@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MoreVertical, Edit3, Copy, Eye, Power } from "lucide-react";
 import { Producto } from "@/types/producto";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 interface Props {
   producto: Producto;
   onEditar: (p: Producto) => void;
   onDuplicar: (p: Producto) => void;
-  onVerKardex: (p: Producto) => void;
+  onVerKardex?: (p: Producto) => void;
   onToggleEstado: (p: Producto) => void;
 }
 
@@ -14,9 +16,9 @@ export default function ProductoActions({
   producto,
   onEditar,
   onDuplicar,
-  onVerKardex,
   onToggleEstado,
 }: Props) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -69,72 +71,74 @@ export default function ProductoActions({
         ref={btnRef}
         type="button"
         onClick={handleToggle}
-        className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors active:scale-95"
+        className="h-8 w-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-150 active:scale-95 shadow-xs cursor-pointer"
         title="Opciones del producto"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
       {open && (
-        <div
-          ref={menuRef}
-          style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-          className="fixed z-[99999] w-48 bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
-        >
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onEditar(producto);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
+        <ModalPortal>
+          <div
+            ref={menuRef}
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            className="fixed z-[99999] w-48 bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
           >
-            <Edit3 className="h-3.5 w-3.5 text-blue-500" />
-            Editar
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onEditar(producto);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left cursor-pointer"
+            >
+              <Edit3 className="h-3.5 w-3.5 text-blue-500" />
+              Editar
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onDuplicar(producto);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <Copy className="h-3.5 w-3.5 text-violet-500" />
-            Duplicar
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onDuplicar(producto);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left cursor-pointer"
+            >
+              <Copy className="h-3.5 w-3.5 text-violet-500" />
+              Duplicar
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onVerKardex(producto);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <Eye className="h-3.5 w-3.5 text-emerald-500" />
-            Ver Kardex
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                navigate(`/kardex?producto=${encodeURIComponent(producto.nombre)}`);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-accent transition-colors text-left cursor-pointer"
+            >
+              <Eye className="h-3.5 w-3.5 text-emerald-500" />
+              Ver Kardex
+            </button>
 
-          <div className="h-px bg-border my-1" />
+            <div className="h-px bg-border my-1" />
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onToggleEstado(producto);
-            }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors text-left ${
-              producto.activo
-                ? "text-amber-600 hover:bg-amber-500/10"
-                : "text-emerald-600 hover:bg-emerald-500/10"
-            }`}
-          >
-            <Power className="h-3.5 w-3.5" />
-            {producto.activo ? "Inactivar" : "Activar"}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onToggleEstado(producto);
+              }}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors text-left cursor-pointer ${
+                producto.activo
+                  ? "text-amber-600 hover:bg-amber-500/10"
+                  : "text-emerald-600 hover:bg-emerald-500/10"
+              }`}
+            >
+              <Power className="h-3.5 w-3.5" />
+              {producto.activo ? "Inactivar" : "Activar"}
+            </button>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

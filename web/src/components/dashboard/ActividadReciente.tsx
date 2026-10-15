@@ -41,9 +41,9 @@ export default function ActividadReciente({ data }: Props) {
   }
 
   return (
-    <div className="relative pl-6">
+    <div className="relative pl-6 max-h-[360px] overflow-y-auto pr-2.5">
       {/* Línea vertical del Timeline */}
-      <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border" />
+      <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border pointer-events-none" />
 
       <div className="space-y-5">
         {data.map((item, i) => {

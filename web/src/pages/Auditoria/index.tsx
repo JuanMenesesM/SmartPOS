@@ -6,7 +6,12 @@ import AuditoriaStats from "@/components/auditoria/AuditoriaStats";
 import AuditoriaFilters from "@/components/auditoria/AuditoriaFilters";
 import AuditoriaTable from "@/components/auditoria/AuditoriaTable";
 import AuditoriaDetailSheet from "@/components/auditoria/AuditoriaDetailSheet";
+import VentaDetalleModal from "@/components/ventas/VentaDetalleModal";
+import CompraDetalleModal from "@/components/compras/CompraDetalleModal";
 import { getAuditoriaEventos, getAuditoriaStats } from "@/services/auditoria.service";
+import { getVentaById } from "@/services/ventas.service";
+import { getCompraById, CompraAPI } from "@/services/compras.service";
+import { VentaBackend } from "@/types/venta";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 
 export default function AuditoriaPage() {
@@ -19,7 +24,11 @@ export default function AuditoriaPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // Modales unificados
   const [selectedEvento, setSelectedEvento] = useState<EventoAuditoria | null>(null);
+  const [selectedVenta, setSelectedVenta] = useState<VentaBackend | null>(null);
+  const [selectedCompra, setSelectedCompra] = useState<CompraAPI | null>(null);
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -27,6 +36,13 @@ export default function AuditoriaPage() {
   const [modulo, setModulo] = useState("TODOS");
   const [accion, setAccion] = useState("TODOS");
   const [fecha, setFecha] = useState("TODOS");
+  const [fechaRangoStart, setFechaRangoStart] = useState<Date | null>(null);
+  const [fechaRangoEnd, setFechaRangoEnd] = useState<Date | null>(null);
+
+  function handleFechaRangoChange(start: Date | null, end: Date | null) {
+    setFechaRangoStart(start);
+    setFechaRangoEnd(end);
+  }
 
   const loadData = async () => {
     setIsLoading(true);
@@ -49,11 +65,103 @@ export default function AuditoriaPage() {
     loadData();
   }, []);
 
+  const handleDescargarPDF = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:3000/ventas/${id}/pdf`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error("Error al descargar el PDF");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (e) {
+      console.error(e);
+      alert("No se pudo generar el PDF");
+    }
+  };
+
+  // Manejo de clic unificado: redirige directamente al modal de Venta o Compra oficial
+  const handleVerEvento = async (ev: EventoAuditoria) => {
+    if (ev.modulo === "Ventas") {
+      const match = ev.descripcion.match(/(?:VNT|FAC)-(\d+)/i);
+      const ventaId = match ? parseInt(match[1], 10) : null;
+      if (ventaId) {
+        try {
+          const venta = await getVentaById(ventaId);
+          if (venta) {
+            setSelectedVenta(venta);
+            return;
+          }
+        } catch (err) {
+          console.error("Error al obtener detalle de venta:", err);
+        }
+      }
+    }
+
+    if (ev.modulo === "Compras") {
+      const match = ev.descripcion.match(/FC-(\d+)/i);
+      const compraId = match ? parseInt(match[1], 10) : null;
+      if (compraId) {
+        try {
+          const compra = await getCompraById(compraId);
+          if (compra) {
+            setSelectedCompra(compra);
+            return;
+          }
+        } catch (err) {
+          console.error("Error al obtener detalle de compra:", err);
+        }
+      }
+    }
+
+    // Para cualquier otro módulo o si no se detectó ID específico, muestra el detalle de auditoría
+    setSelectedEvento(ev);
+  };
+
+  // Lista dinámica de usuarios deducida de los eventos cargados
+  const usuariosDisponibles = Array.from(
+    new Map(eventos.map((ev) => [String(ev.usuarioId), ev.usuarioNombre])).entries()
+  ).map(([id, nombre]) => ({ value: id, label: nombre }));
+
   // Filtrado local
   const eventosFiltrados = eventos.filter((ev) => {
     if (usuario !== "TODOS" && String(ev.usuarioId) !== usuario) return false;
     if (modulo !== "TODOS" && ev.modulo !== modulo) return false;
     if (accion !== "TODOS" && ev.accion !== accion) return false;
+
+    // Filtro por período de fecha
+    if (fecha !== "TODOS") {
+      const evFecha = new Date(ev.fecha);
+      const ahora = new Date();
+      if (fecha === "hoy") {
+        if (
+          evFecha.getFullYear() !== ahora.getFullYear() ||
+          evFecha.getMonth() !== ahora.getMonth() ||
+          evFecha.getDate() !== ahora.getDate()
+        ) return false;
+      } else if (fecha === "semana") {
+        const inicioSemana = new Date(ahora);
+        inicioSemana.setDate(ahora.getDate() - ahora.getDay() + (ahora.getDay() === 0 ? -6 : 1));
+        inicioSemana.setHours(0, 0, 0, 0);
+        if (evFecha < inicioSemana) return false;
+      } else if (fecha === "mes") {
+        if (
+          evFecha.getFullYear() !== ahora.getFullYear() ||
+          evFecha.getMonth() !== ahora.getMonth()
+        ) return false;
+      } else if (fecha === "anio") {
+        if (evFecha.getFullYear() !== ahora.getFullYear()) return false;
+      } else if (fecha === "personalizado" && fechaRangoStart && fechaRangoEnd) {
+        const evDay = new Date(evFecha.getFullYear(), evFecha.getMonth(), evFecha.getDate());
+        const inicio = new Date(fechaRangoStart.getFullYear(), fechaRangoStart.getMonth(), fechaRangoStart.getDate());
+        const fin    = new Date(fechaRangoEnd.getFullYear(), fechaRangoEnd.getMonth(), fechaRangoEnd.getDate());
+        if (evDay < inicio || evDay > fin) return false;
+      }
+    }
+
     if (busqueda) {
       const q = busqueda.toLowerCase();
       if (
@@ -115,6 +223,10 @@ export default function AuditoriaPage() {
         modulo={modulo}        onModuloChange={setModulo}
         accion={accion}        onAccionChange={setAccion}
         fecha={fecha}          onFechaChange={setFecha}
+        fechaRangoStart={fechaRangoStart}
+        fechaRangoEnd={fechaRangoEnd}
+        onFechaRangoChange={handleFechaRangoChange}
+        usuariosDisponibles={usuariosDisponibles}
       />
 
       {/* ── Tabla ────────────────────────────────────────────────────────────── */}
@@ -129,7 +241,7 @@ export default function AuditoriaPage() {
       ) : (
         <AuditoriaTable
           eventos={eventosFiltrados}
-          onRowClick={setSelectedEvento}
+          onRowClick={handleVerEvento}
         />
       )}
 
@@ -144,7 +256,20 @@ export default function AuditoriaPage() {
         </div>
       )}
 
-      {/* ── Detail Sheet ─────────────────────────────────────────────────────── */}
+      {/* ── Modal de Detalle de Venta Reutilizado ─────────────────────────────── */}
+      <VentaDetalleModal
+        venta={selectedVenta}
+        onClose={() => setSelectedVenta(null)}
+        onDescargarPDF={handleDescargarPDF}
+      />
+
+      {/* ── Modal de Detalle de Compra Reutilizado ────────────────────────────── */}
+      <CompraDetalleModal
+        compra={selectedCompra}
+        onClose={() => setSelectedCompra(null)}
+      />
+
+      {/* ── Modal de Auditoría Genérico (Otros Módulos) ───────────────────────── */}
       <AuditoriaDetailSheet
         evento={selectedEvento}
         onClose={() => setSelectedEvento(null)}

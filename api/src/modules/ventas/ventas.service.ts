@@ -122,6 +122,7 @@ export const listarVentas = async (filtros: FiltrosVentaDTO = {}) => {
             usuario: {
                 select: {
                     nombre: true,
+                    apellido: true,
                     correo: true
                 }
             },

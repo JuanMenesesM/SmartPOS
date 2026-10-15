@@ -21,7 +21,7 @@ export const obtenerMovimientos = async () => {
         fecha: m.fecha.toISOString(),
         productoNombre: m.producto.nombre,
         tipo: m.tipo,
-        documento: m.origenId ? `DOC-${m.origenId}` : `MOV-${m.id}`,
+        documento: m.origenId ? `MOV-${m.origenId}` : `MOV-${m.id}`,
         cantidad: m.cantidad,
         stockAnterior: m.stockAnterior,
         stockNuevo: m.stockNuevo,

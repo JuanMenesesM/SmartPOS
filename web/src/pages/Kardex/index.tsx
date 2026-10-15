@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, History } from "lucide-react";
 import { MovimientoKardex } from "@/types/producto";
 import { getKardexMovimientos, getKardexStats } from "@/services/kardex.service";
@@ -11,6 +12,9 @@ import KardexAjusteSheet from "@/components/kardex/KardexAjusteSheet";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 
 export default function KardexPage() {
+  const [searchParams] = useSearchParams();
+  const productoParam = searchParams.get("producto") || "";
+
   const [movimientos, setMovimientos] = useState<MovimientoKardex[]>([]);
   const [stats, setStats] = useState({ total: 0, entradas: 0, salidas: 0, ajustes: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +22,7 @@ export default function KardexPage() {
   const [selectedMov, setSelectedMov] = useState<MovimientoKardex | null>(null);
 
   // Filtros
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useState(productoParam);
   const [tipo, setTipo] = useState("TODOS");
   const [proveedorId, setProveedorId] = useState("");
   const [fecha, setFecha] = useState("TODOS");

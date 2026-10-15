@@ -26,6 +26,8 @@ export interface VentaBackend {
   fecha: string;
   total: number;
   activo: boolean;
+  metodoPago?: string;
+  referencia?: string;
   usuario: {
     nombre: string;
     apellido?: string;

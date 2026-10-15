@@ -182,57 +182,50 @@ function UsuariosTab() {
         })()}
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Table Estandarizada */}
+      <div className="bg-card/90 backdrop-blur-xl rounded-2xl border border-border/80 shadow-lg shadow-black/[0.03] dark:shadow-black/20 overflow-hidden ring-1 ring-border/40">
+        <div className="h-1 w-full bg-gradient-to-r from-primary/30 via-primary to-primary/30 shrink-0" />
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Usuario
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Correo
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Rol
-                </th>
-                <th className="text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Estado
-                </th>
+          <table className="w-full text-xs border-collapse">
+            <thead className="sticky top-0 z-10 bg-muted/60 dark:bg-muted/30 backdrop-blur-md border-b border-border/80 text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider">
+              <tr>
+                <th className="py-3.5 px-4 font-extrabold text-center">Usuario</th>
+                <th className="py-3.5 px-4 font-extrabold text-center">Correo</th>
+                <th className="py-3.5 px-4 font-extrabold text-center">Rol</th>
+                <th className="py-3.5 px-4 font-extrabold text-center">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {usuarios.map((u) => (
                 <tr
                   key={u.id}
-                  className="hover:bg-accent/40 transition-colors"
+                  className="hover:bg-primary/[0.03] dark:hover:bg-primary/[0.06] transition-colors duration-150 group"
                 >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-violet-500 shrink-0 shadow-sm">
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-3 justify-center">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-violet-500 shrink-0 shadow-xs border border-white/20">
                         <span className="text-xs font-bold text-white">
                           {u.nombre.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
+                        <p className="text-xs font-bold text-foreground truncate">
                           {u.nombre} {u.apellido}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{u.correo}</span>
+                  <td className="py-3.5 px-4 text-center">
+                    <span className="text-xs text-muted-foreground font-mono">{u.correo}</span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                  <td className="py-3.5 px-4 text-center">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 shadow-xs">
                       {getRolLabel(u.rolId)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="py-3.5 px-4 text-center">
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold border ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border shadow-xs ${
                         u.activo
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                           : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"

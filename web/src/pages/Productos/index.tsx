@@ -16,7 +16,6 @@ import ExportDropdown from "@/components/productos/ExportDropdown";
 import ProductoFilters from "@/components/productos/ProductoFilters";
 import ProductosTable from "@/components/productos/ProductosTable";
 import ProductoModal from "@/components/productos/ProductoModal";
-import ProductoKardexModal from "@/components/productos/ProductoKardexModal";
 
 export default function ProductosPage() {
   const { data: productos = [], isLoading } = useProductos();
@@ -34,7 +33,7 @@ export default function ProductosPage() {
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
   const [modoDuplicar, setModoDuplicar] = useState(false);
 
-  const [kardexProducto, setKardexProducto] = useState<Producto | null>(null);
+
 
   // ── Lógica de Filtrado ───────────────────────────────────────────────────────
   const productosFiltrados = useMemo(() => {
@@ -79,9 +78,7 @@ export default function ProductosPage() {
     setModalOpen(true);
   };
 
-  const handleVerKardex = (p: Producto) => {
-    setKardexProducto(p);
-  };
+
 
   const handleToggleEstado = async (p: Producto) => {
     await toggleMutation.mutateAsync(p.id);
@@ -171,7 +168,6 @@ export default function ProductosPage() {
         onNuevoProducto={handleNuevo}
         onEditar={handleEditar}
         onDuplicar={handleDuplicar}
-        onVerKardex={handleVerKardex}
         onToggleEstado={handleToggleEstado}
       />
 
@@ -185,10 +181,6 @@ export default function ProductosPage() {
         isSubmitting={crearMutation.isPending || actualizarMutation.isPending}
       />
 
-      <ProductoKardexModal
-        producto={kardexProducto}
-        onClose={() => setKardexProducto(null)}
-      />
     </div>
   );
 }

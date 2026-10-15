@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Ban, AlertCircle, Loader2 } from "lucide-react";
+import { Eye, Ban, AlertCircle, Loader2 } from "lucide-react";
 import { CompraAPI } from "@/services/compras.service";
 import { useAnularCompra } from "@/hooks/useCompras";
 
@@ -29,23 +29,26 @@ export default function CompraActions({ compra, onVerDetalle }: Props) {
 
   return (
     <>
-      <div className="flex items-center gap-2 justify-center">
+      <div className="flex items-center gap-1.5 justify-center">
         <button
+          type="button"
           onClick={() => onVerDetalle(compra)}
-          className="whitespace-nowrap inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground text-muted-foreground border border-border/60 hover:border-primary transition-all duration-150"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/20 hover:border-primary shadow-2xs hover:shadow-md hover:shadow-primary/20 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer"
           title="Ver detalle de la compra"
         >
-          <Package className="h-3 w-3 shrink-0" />
-          Ver Detalle
+          <Eye className="h-3.5 w-3.5" />
+          <span>Ver</span>
         </button>
 
         {compra.activo && (
           <button
+            type="button"
             onClick={() => setShowConfirm(true)}
-            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500 hover:text-white border border-transparent hover:border-rose-600 transition-all duration-150"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-600 hover:text-white border border-rose-500/20 hover:border-rose-600 shadow-2xs hover:shadow-md hover:shadow-rose-500/20 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer"
             title="Anular compra"
           >
             <Ban className="h-3.5 w-3.5" />
+            <span>Anular</span>
           </button>
         )}
       </div>

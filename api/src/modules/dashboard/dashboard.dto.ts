@@ -1,9 +1,18 @@
 export interface DashboardDTO {
     kpis: {
+        ventas: number;
+        compras: number;
+        ganancias: number;
+        transacciones: number;
+        ventasCount: number;
+        comprasCount: number;
+        transaccionesHoy: number;
+        ventasHoyCount: number;
+        comprasHoyCount: number;
+        stockBajo: number;
         ventasHoy: number;
         ventasMes: number;
         facturasHoy: number;
-        stockBajo: number;
     };
 
     ventasPorDia: {

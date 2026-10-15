@@ -11,7 +11,6 @@ interface Props {
   onNuevoProducto: () => void;
   onEditar: (p: Producto) => void;
   onDuplicar: (p: Producto) => void;
-  onVerKardex: (p: Producto) => void;
   onToggleEstado: (p: Producto) => void;
 }
 
@@ -21,7 +20,6 @@ export default function ProductosTable({
   onNuevoProducto,
   onEditar,
   onDuplicar,
-  onVerKardex,
   onToggleEstado,
 }: Props) {
   if (isLoading) {
@@ -64,64 +62,68 @@ export default function ProductosTable({
 
   // ── Tabla Ultra Limpia ───────────────────────────────────────────────────────
   return (
-    <div className="bg-card rounded-2xl border border-border overflow-hidden">
-      <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+    <div className="bg-card/90 backdrop-blur-xl rounded-2xl border border-border/80 shadow-lg shadow-black/[0.03] dark:shadow-black/20 overflow-hidden ring-1 ring-border/40">
+      <div className="h-1 w-full bg-gradient-to-r from-primary/30 via-primary to-primary/30 shrink-0" />
+      <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur-md border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <thead className="sticky top-0 z-10 bg-muted/60 dark:bg-muted/30 backdrop-blur-md border-b border-border/80 text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider">
             <tr>
-              <th className="py-3 px-4 font-bold text-center">Código</th>
-              <th className="py-3 px-4 font-bold text-center">Producto</th>
-              <th className="py-3 px-4 font-bold text-center">Precio</th>
-              <th className="py-3 px-4 font-bold text-center">Stock</th>
-              <th className="py-3 px-4 font-bold text-center">Estado</th>
-              <th className="py-3 px-4 font-bold text-center">Acciones</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Código</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Producto</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Precio</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Stock</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Estado</th>
+              <th className="py-3.5 px-4 font-extrabold text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
             {productos.map((p) => (
               <tr
                 key={p.id}
-                className="hover:bg-accent/40 transition-colors duration-150 group"
+                className="even:bg-muted/[0.22] dark:even:bg-muted/[0.12] hover:bg-primary/[0.08] dark:hover:bg-primary/[0.15] transition-colors duration-150 group cursor-pointer"
               >
                 {/* Código */}
-                <td className="py-3 px-4 font-mono text-[11px] font-semibold text-muted-foreground text-center">
-                  <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/50">
+                <td className="py-3.5 px-4 text-center">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-muted/60 dark:bg-muted/40 border border-border/70 font-mono text-[11px] font-semibold text-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors shadow-2xs">
                     {p.codigo}
                   </span>
                 </td>
 
                 {/* Producto */}
-                <td className="py-3 px-4 font-bold text-sm text-foreground group-hover:text-primary transition-colors text-center">
-                  {p.nombre}
+                <td className="py-3.5 px-4 text-center">
+                  <span className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors">
+                    {p.nombre}
+                  </span>
                 </td>
 
                 {/* Precio */}
-                <td className="py-3 px-4 font-mono font-bold text-foreground text-center">
-                  {formatCOP(p.precioVenta)}
+                <td className="py-3.5 px-4 text-center">
+                  <span className="inline-block px-2.5 py-0.5 rounded-md bg-muted/50 border border-border/60 font-mono font-bold text-foreground text-xs tracking-tight tabular-nums shadow-2xs">
+                    {formatCOP(p.precioVenta)}
+                  </span>
                 </td>
 
                 {/* Stock */}
-                <td className="py-3 px-4 text-center">
+                <td className="py-3.5 px-4 text-center">
                   <div className="flex justify-center">
                     <ProductoStockBadge stock={p.stock} />
                   </div>
                 </td>
 
                 {/* Estado */}
-                <td className="py-3 px-4 text-center">
+                <td className="py-3.5 px-4 text-center">
                   <div className="flex justify-center">
                     <ProductoStatusBadge activo={p.activo} />
                   </div>
                 </td>
 
                 {/* Acciones */}
-                <td className="py-3 px-4 text-center">
+                <td className="py-3.5 px-4 text-center">
                   <div className="flex justify-center">
                     <ProductoActions
                       producto={p}
                       onEditar={onEditar}
                       onDuplicar={onDuplicar}
-                      onVerKardex={onVerKardex}
                       onToggleEstado={onToggleEstado}
                     />
                   </div>

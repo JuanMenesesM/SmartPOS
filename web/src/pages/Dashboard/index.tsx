@@ -5,6 +5,8 @@ import {
   BarChart3,
   AlertTriangle,
   Calendar,
+  ShoppingBag,
+  Wallet,
   LucideIcon,
 } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -26,23 +28,36 @@ interface KPICardProps {
   color: string;
   bg: string;
   subtext?: string;
+  valueClassName?: string;
 }
 
-function KPICard({ label, value, icon: Icon, color, bg, subtext }: KPICardProps) {
+function KPICard({ label, value, icon: Icon, color, bg, subtext, valueClassName }: KPICardProps) {
   return (
-    <div className="group bg-card rounded-xl p-5 flex items-center gap-4 shadow-sm border border-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+    <div className="group bg-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 border border-border/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-border transition-all duration-200 cursor-default h-full min-h-[92px] relative overflow-hidden">
+      {/* Sutil halo al hacer hover */}
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${bg} transition-transform duration-200 group-hover:scale-110`}
+        className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none -mr-6 -mt-6 ${bg}`}
+      />
+
+      {/* Ícono a la izquierda */}
+      <div
+        className={`flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl shrink-0 ${bg} transition-transform duration-200 group-hover:scale-105 shadow-2xs`}
       >
-        <Icon className={`h-5 w-5 ${color}`} />
+        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
       </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground font-medium">{label}</p>
-        <p className="text-2xl font-bold text-foreground leading-tight tabular-nums">
+
+      {/* Contenido a la derecha */}
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold text-muted-foreground tracking-tight truncate" title={label}>
+          {label}
+        </p>
+        <p className={`text-lg sm:text-xl font-bold font-mono text-foreground leading-tight tracking-tight tabular-nums mt-0.5 ${valueClassName || ""}`}>
           {value}
         </p>
         {subtext && (
-          <p className="text-[10px] text-muted-foreground mt-0.5">{subtext}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight truncate" title={subtext}>
+            {subtext}
+          </p>
         )}
       </div>
     </div>
@@ -78,11 +93,12 @@ function DashCard({ title, subtitle, children, className = "" }: CardProps) {
 
 function KPISkeleton() {
   return (
-    <div className="bg-card rounded-xl p-5 flex items-center gap-4 border border-border shadow-sm">
-      <div className="h-12 w-12 rounded-xl bg-muted animate-pulse shrink-0" />
-      <div className="space-y-2 flex-1">
-        <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />
-        <div className="h-6 w-28 rounded-full bg-muted animate-pulse" />
+    <div className="bg-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 border border-border/80 shadow-xs h-full min-h-[92px]">
+      <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-muted animate-pulse shrink-0" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="h-3 w-16 rounded-full bg-muted animate-pulse" />
+        <div className="h-5 w-24 rounded-md bg-muted animate-pulse" />
+        <div className="h-2.5 w-28 rounded-full bg-muted animate-pulse" />
       </div>
     </div>
   );
@@ -128,10 +144,10 @@ function formatSubtitulo(rango: RangoFechas): string {
 
 const LABELS_PERIODO: Record<RangoPeriodo, string> = {
   hoy: "de hoy",
-  semana: "de esta semana",
-  mes: "de este mes",
-  anio: "de este año",
-  personalizado: "en el rango seleccionado",
+  semana: "semanal",
+  mes: "del mes",
+  anio: "del año",
+  personalizado: "del período",
 };
 
 export default function DashboardPage() {
@@ -180,10 +196,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── KPIs ─────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── KPIs (5 Cards Dinámicas y Estilizadas) ───────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {isLoading ? (
           <>
+            <KPISkeleton />
             <KPISkeleton />
             <KPISkeleton />
             <KPISkeleton />
@@ -192,83 +209,50 @@ export default function DashboardPage() {
         ) : (
           <>
             <KPICard
-              label="Ventas del Día"
-              value={formatCOP(kpis?.ventasHoy ?? 0)}
+              label="Ventas"
+              value={formatCOP(kpis?.ventas ?? 0)}
               icon={TrendingUp}
               color="text-emerald-500"
               bg="bg-emerald-500/10"
-              subtext="Total de facturación diaria"
+              subtext={rango.periodo === "hoy" ? "Facturación de hoy" : `Facturación ${labelPeriodo}`}
             />
             <KPICard
-              label="Transacciones del Día"
-              value={String(kpis?.facturasHoy ?? 0)}
+              label="Compras"
+              value={formatCOP(kpis?.compras ?? 0)}
+              icon={ShoppingBag}
+              color="text-rose-500"
+              bg="bg-rose-500/10"
+              subtext={rango.periodo === "hoy" ? "Adquisiciones de hoy" : `Adquisiciones ${labelPeriodo}`}
+            />
+            <KPICard
+              label="Ganancias"
+              value={formatCOP(kpis?.ganancias ?? 0)}
+              icon={Wallet}
+              color={(kpis?.ganancias ?? 0) >= 0 ? "text-emerald-500" : "text-rose-500"}
+              bg={(kpis?.ganancias ?? 0) >= 0 ? "bg-emerald-500/10" : "bg-rose-500/10"}
+              subtext={rango.periodo === "hoy" ? "Margen neto de hoy" : `Margen neto ${labelPeriodo}`}
+              valueClassName={(kpis?.ganancias ?? 0) < 0 ? "text-rose-600 dark:text-rose-400" : ""}
+            />
+            <KPICard
+              label="Transacciones"
+              value={String(kpis?.transacciones ?? kpis?.facturasHoy ?? 0)}
               icon={FileText}
-              color="text-blue-500"
-              bg="bg-blue-500/10"
-              subtext="Comprobantes emitidos hoy"
-            />
-            <KPICard
-              label="Facturación Mensual"
-              value={formatCOP(kpis?.ventasMes ?? 0)}
-              icon={BarChart3}
               color="text-violet-500"
               bg="bg-violet-500/10"
-              subtext="Total ingresos acumulados"
+              subtext={`${kpis?.ventasCount ?? 0} ventas • ${kpis?.comprasCount ?? 0} compras`}
             />
             <KPICard
-              label="Alertas de Inventario"
+              label="Stock Crítico"
               value={String(kpis?.stockBajo ?? 0)}
               icon={AlertTriangle}
-              color="text-amber-500"
-              bg="bg-amber-500/10"
-              subtext="Artículos con stock crítico"
+              color={(kpis?.stockBajo ?? 0) > 0 ? "text-amber-500" : "text-emerald-500"}
+              bg={(kpis?.stockBajo ?? 0) > 0 ? "bg-amber-500/10" : "bg-emerald-500/10"}
+              subtext="Por abastecer"
+              valueClassName={(kpis?.stockBajo ?? 0) > 0 ? "text-amber-600 dark:text-amber-400" : ""}
             />
           </>
         )}
       </div>
-
-      {/* ── Meta de Ventas del Día ───────────────────────────────────────── */}
-      {!isLoading && kpis && (
-        <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3 transition-all duration-300 hover:shadow-md">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                Meta de Ventas Diaria
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Monitoreo del objetivo de ventas diario del comercio
-              </p>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-bold text-foreground font-mono">
-                {formatCOP(kpis.ventasHoy)}
-              </span>
-              <span className="text-xs text-muted-foreground">/</span>
-              <span className="text-xs font-semibold text-muted-foreground font-mono">
-                {formatCOP(1000000)}
-              </span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-2 ${
-                Math.round((kpis.ventasHoy / 1000000) * 100) >= 100
-                  ? "bg-emerald-500/10 text-emerald-500"
-                  : "bg-primary/10 text-primary"
-              }`}>
-                {Math.round((kpis.ventasHoy / 1000000) * 100)}%
-              </span>
-            </div>
-          </div>
-          
-          <div className="relative w-full bg-muted h-2 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full bg-gradient-to-r transition-all duration-1000 ease-out ${
-                (kpis.ventasHoy / 1000000) >= 1
-                  ? "from-emerald-500 to-teal-400"
-                  : "from-primary to-indigo-500"
-              }`}
-              style={{ width: `${Math.min(Math.round((kpis.ventasHoy / 1000000) * 100), 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── Gráficos ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">

@@ -6,6 +6,7 @@ import { prisma } from "../../config/prisma";
 eventBus.on(Events.VENTA_CREADA, async (data: VentaCreadaEvent) => {
     try {
         const webhookUrl = process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/ca8c8596-4b50-46df-9656-15b449d0d1a4";
+        const evolutionInstance = "SmartPOS";
 
         if (!webhookUrl) return;
 

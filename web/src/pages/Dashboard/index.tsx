@@ -33,7 +33,7 @@ interface KPICardProps {
 
 function KPICard({ label, value, icon: Icon, color, bg, subtext, valueClassName }: KPICardProps) {
   return (
-    <div className="group bg-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 border border-border/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-border transition-all duration-200 cursor-default h-full min-h-[92px] relative overflow-hidden">
+    <div className="group bg-card rounded-2xl p-2.5 sm:p-3 xl:p-3.5 flex items-center gap-2.5 sm:gap-3 border border-border/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-border transition-all duration-200 cursor-default h-full min-h-[82px] relative overflow-hidden">
       {/* Sutil halo al hacer hover */}
       <div
         className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none -mr-6 -mt-6 ${bg}`}
@@ -41,21 +41,21 @@ function KPICard({ label, value, icon: Icon, color, bg, subtext, valueClassName 
 
       {/* Ícono a la izquierda */}
       <div
-        className={`flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl shrink-0 ${bg} transition-transform duration-200 group-hover:scale-105 shadow-2xs`}
+        className={`flex h-9 w-9 sm:h-10 sm:w-10 xl:h-11 xl:w-11 items-center justify-center rounded-xl shrink-0 ${bg} transition-transform duration-200 group-hover:scale-105 shadow-2xs`}
       >
-        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
+        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${color}`} />
       </div>
 
       {/* Contenido a la derecha */}
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold text-muted-foreground tracking-tight truncate" title={label}>
+        <p className="text-[11px] sm:text-xs font-semibold text-muted-foreground tracking-tight truncate" title={label}>
           {label}
         </p>
-        <p className={`text-lg sm:text-xl font-bold font-mono text-foreground leading-tight tracking-tight tabular-nums mt-0.5 ${valueClassName || ""}`}>
+        <p className={`text-sm sm:text-base xl:text-lg font-bold font-mono text-foreground leading-tight tracking-tight tabular-nums mt-0.5 truncate ${valueClassName || ""}`}>
           {value}
         </p>
         {subtext && (
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight truncate" title={subtext}>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 leading-tight truncate" title={subtext}>
             {subtext}
           </p>
         )}
@@ -196,8 +196,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── KPIs (5 Cards Dinámicas y Estilizadas) ───────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      {/* ── KPIs (5 Cards Dinámicas en 1 sola línea) ───────────────────────── */}
+      <div className="grid grid-cols-5 gap-2 sm:gap-2.5 xl:gap-3.5">
         {isLoading ? (
           <>
             <KPISkeleton />

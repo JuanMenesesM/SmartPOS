@@ -62,13 +62,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     ...(superAdmin
       ? [
           {
-            label: "Control de Licencias",
+            label: "Control",
             items: [
               {
                 to: "/control",
-                label: "Panel SaaS Control",
+                label: "Panel de Control",
                 icon: ShieldCheck,
-                badge: "SuperAdmin",
               },
             ],
           },

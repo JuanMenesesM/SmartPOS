@@ -1,7 +1,29 @@
 import { NavLink } from "react-router-dom";
-import { X, Zap, LayoutDashboard, Package, ShoppingCart, Truck, FileText, ClipboardList, Building2, Settings } from "lucide-react";
+import {
+  X,
+  Zap,
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Truck,
+  FileText,
+  ClipboardList,
+  Building2,
+  Settings,
+  ShieldCheck,
+  Lock
+} from "lucide-react";
+import { isSuperAdmin, hasModule, ModulosConfig } from "@/services/auth.service";
 
-const navGroups = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: any;
+  modulo?: keyof ModulosConfig;
+  badge?: string;
+}
+
+const baseNavGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Principal",
     items: [
@@ -11,16 +33,16 @@ const navGroups = [
   {
     label: "Operaciones",
     items: [
-      { to: "/productos", label: "Productos", icon: Package },
-      { to: "/ventas",    label: "Ventas",    icon: ShoppingCart },
-      { to: "/compras",   label: "Compras",   icon: Truck },
-      { to: "/kardex",    label: "Kardex",    icon: FileText },
+      { to: "/productos", label: "Productos", icon: Package, modulo: "inventario" },
+      { to: "/ventas",    label: "Ventas",    icon: ShoppingCart, modulo: "pos" },
+      { to: "/compras",   label: "Compras",   icon: Truck, modulo: "compras" },
+      { to: "/kardex",    label: "Kardex",    icon: FileText, modulo: "kardex" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { to: "/auditoria",     label: "Auditoría",     icon: ClipboardList },
+      { to: "/auditoria",     label: "Auditoría",     icon: ClipboardList, modulo: "auditoria" },
       { to: "/empresa",       label: "Empresa",       icon: Building2 },
       { to: "/configuracion", label: "Configuración", icon: Settings },
     ],
@@ -33,6 +55,27 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
+  const superAdmin = isSuperAdmin();
+
+  const navGroups = [
+    ...baseNavGroups,
+    ...(superAdmin
+      ? [
+          {
+            label: "Control de Licencias",
+            items: [
+              {
+                to: "/control",
+                label: "Panel SaaS Control",
+                icon: ShieldCheck,
+                badge: "SuperAdmin",
+              },
+            ],
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>
       {/* Overlay mobile */}
@@ -85,28 +128,50 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
               {/* Items */}
               <div className="space-y-0.5">
-                {group.items.map(({ to, label, icon: Icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      [
-                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
-                        isActive
-                          ? "bg-primary/10 text-primary border-l-4 border-primary pl-[9px]"
-                          : "text-muted-foreground border-l-4 border-transparent pl-[9px] hover:bg-accent hover:text-foreground",
-                      ].join(" ")
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <Icon className={["h-4 w-4 shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-foreground"].join(" ")} />
-                        {label}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                {group.items.map(({ to, label, icon: Icon, modulo, badge }) => {
+                  const estaHabilitado = !modulo || hasModule(modulo);
+
+                  return (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        [
+                          "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                          isActive
+                            ? "bg-primary/10 text-primary border-l-4 border-primary pl-[9px]"
+                            : "text-muted-foreground border-l-4 border-transparent pl-[9px] hover:bg-accent hover:text-foreground",
+                          !estaHabilitado ? "opacity-75" : "",
+                        ].join(" ")
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Icon
+                              className={[
+                                "h-4 w-4 shrink-0 transition-colors",
+                                isActive ? "text-primary" : "group-hover:text-foreground",
+                              ].join(" ")}
+                            />
+                            <span className="truncate">{label}</span>
+                          </div>
+
+                          {/* Badge de Inactivo o Badge SuperAdmin */}
+                          {!estaHabilitado && (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                          )}
+                          {badge && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-primary/15 text-primary border border-primary/25 shrink-0">
+                              {badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </div>
             </div>
           ))}

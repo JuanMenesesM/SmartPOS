@@ -3,7 +3,8 @@ import * as EmpresaService from "./empresa.service";
 
 export const obtenerEmpresaController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const empresa = await EmpresaService.obtenerEmpresa();
+        const empresaId = (req as any).usuario?.empresaId;
+        const empresa = await EmpresaService.obtenerEmpresa(empresaId);
         return res.json(empresa);
     } catch (error) {
         next(error);
@@ -34,10 +35,11 @@ export const toggleLicenciaController = async (req: Request, res: Response, next
 
 export const crearEmpresaController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const empresa = await EmpresaService.crearEmpresa(req.body);
+        const resultado = await EmpresaService.crearEmpresa(req.body);
         return res.status(201).json({
-            message: "Empresa creada exitosamente",
-            empresa
+            message: "Empresa y usuario administrador creados exitosamente",
+            empresa: resultado.empresa,
+            credenciales: resultado.credenciales
         });
     } catch (error) {
         next(error);
@@ -50,6 +52,19 @@ export const actualizarEmpresaController = async (req: Request, res: Response, n
         const empresa = await EmpresaService.actualizarEmpresa(id, req.body);
         return res.json({
             message: "Empresa actualizada exitosamente",
+            empresa
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const actualizarModulosController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const empresa = await EmpresaService.actualizarModulos(id, req.body.modulos);
+        return res.json({
+            message: "Módulos actualizados exitosamente",
             empresa
         });
     } catch (error) {

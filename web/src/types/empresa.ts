@@ -28,6 +28,17 @@ export interface EmpresaConfiguracion {
   abrirVentaAutomaticamente: boolean;
   imprimirFacturaAutomaticamente: boolean;
   solicitarConfirmacionCobro: boolean;
+
+  // 7. Módulos SaaS
+  modulos?: {
+    pos?: boolean;
+    inventario?: boolean;
+    compras?: boolean;
+    kardex?: boolean;
+    auditoria?: boolean;
+    whatsapp?: boolean;
+    ia?: boolean;
+  };
 }
 
 export interface Empresa {
@@ -39,6 +50,7 @@ export interface Empresa {
   correo: string | null;
   logo: string | null;
   ciudad: string | null;
-  configuracion: EmpresaConfiguracion | null;
+  configuracion: Partial<EmpresaConfiguracion> | null;
   activo: boolean;
+  licenciaActiva?: boolean;
 }

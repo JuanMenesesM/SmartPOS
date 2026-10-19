@@ -10,7 +10,7 @@ export const login = async (data: LoginDTO) => {
     where: { correo },
     include: {
       empresa: {
-        select: { id: true, nombre: true, licenciaActiva: true }
+        select: { id: true, nombre: true, licenciaActiva: true, configuracion: true }
       }
     }
   });
@@ -40,6 +40,17 @@ export const login = async (data: LoginDTO) => {
 
   const token = generarToken(usuario);
 
+  const empresaConfig = (usuario.empresa?.configuracion as any) || {};
+  const modulos = empresaConfig.modulos || {
+    pos: true,
+    inventario: true,
+    compras: true,
+    kardex: true,
+    auditoria: true,
+    whatsapp: false,
+    ia: false
+  };
+
   return {
     usuario: {
       id: usuario.id,
@@ -48,7 +59,9 @@ export const login = async (data: LoginDTO) => {
       correo: usuario.correo,
       rolId: usuario.rolId,
       empresaId: usuario.empresaId,
+      empresaNombre: usuario.empresa?.nombre || "",
       licenciaActiva: usuario.empresa?.licenciaActiva ?? true,
+      modulos
     },
     token
   };

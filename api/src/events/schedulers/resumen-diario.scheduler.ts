@@ -25,6 +25,18 @@ async function enviarResumenDiario() {
     }
 
     try {
+        // Verificar si alguna empresa tiene activo el módulo de WhatsApp
+        const empresasActivas = await prisma.empresa.findMany({
+            where: { activo: true, licenciaActiva: true }
+        });
+        const tieneModuloWhatsapp = empresasActivas.some(e => {
+            const cfg = (e.configuracion as any) || {};
+            return cfg.modulos ? cfg.modulos.whatsapp === true : false;
+        });
+        if (!tieneModuloWhatsapp) {
+            return;
+        }
+
         const hoy = new Date();
         const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0);
         const finDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59);

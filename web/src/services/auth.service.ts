@@ -7,6 +7,16 @@ export interface LoginPayload {
   contrasena: string;
 }
 
+export interface ModulosConfig {
+  pos?: boolean;
+  inventario?: boolean;
+  compras?: boolean;
+  kardex?: boolean;
+  auditoria?: boolean;
+  whatsapp?: boolean;
+  ia?: boolean;
+}
+
 export interface LoginResponse {
   message: string;
   usuario: {
@@ -16,7 +26,9 @@ export interface LoginResponse {
     correo: string;
     rolId: number;
     empresaId: number | null;
+    empresaNombre?: string;
     licenciaActiva: boolean;
+    modulos?: ModulosConfig;
   };
   token: string;
 }
@@ -35,6 +47,14 @@ export function getUsuario(): LoginResponse['usuario'] | null {
 export function isSuperAdmin(): boolean {
   const u = getUsuario();
   return u?.rolId === 1;
+}
+
+/** Retorna true si la empresa del usuario tiene contratado el módulo */
+export function hasModule(moduleKey: keyof ModulosConfig): boolean {
+  const u = getUsuario();
+  if (!u) return false;
+  if (!u.modulos) return moduleKey !== "whatsapp" && moduleKey !== "ia";
+  return u.modulos[moduleKey] === true;
 }
 
 export async function loginService(payload: LoginPayload): Promise<LoginResponse> {

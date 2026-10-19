@@ -10,12 +10,15 @@ eventBus.on(Events.VENTA_CREADA, async (data: VentaCreadaEvent) => {
 
         if (!webhookUrl) return;
 
-        // Cargar detalles completos de la venta con nombres de productos y cajero
+        // Cargar detalles completos de la venta con nombres de productos, cajero y empresa
         const venta = await prisma.venta.findUnique({
             where: { id: data.ventaId },
             include: {
                 usuario: {
                     select: { nombre: true, apellido: true }
+                },
+                empresa: {
+                    select: { id: true, nombre: true, configuracion: true }
                 },
                 detalles: {
                     include: {
@@ -26,6 +29,12 @@ eventBus.on(Events.VENTA_CREADA, async (data: VentaCreadaEvent) => {
         });
 
         if (!venta) return;
+
+        // Validar si la empresa tiene activo el módulo de WhatsApp
+        const config = (venta.empresa?.configuracion as any) || {};
+        if (config?.modulos && config.modulos.whatsapp !== true) {
+            return;
+        }
 
         const cajeroNombre = venta.usuario 
             ? `${venta.usuario.nombre} ${venta.usuario.apellido || ""}`.trim()

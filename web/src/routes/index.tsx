@@ -15,6 +15,8 @@ const AuditoriaPage         = lazy(() => import("@/pages/Auditoria"));
 const EmpresaPage           = lazy(() => import("@/pages/Empresa"));
 const ConfiguracionPage     = lazy(() => import("@/pages/Configuracion"));
 const LicenciaBloqueadaPage = lazy(() => import("@/pages/LicenciaBloqueada"));
+const ControlPage           = lazy(() => import("@/pages/Control"));
+import ModuloGuard from "@/components/auth/ModuloGuard";
 
 // ── Fallback spinner ──────────────────────────────────────────────────────────
 function PageLoader() {
@@ -49,15 +51,65 @@ export default function AppRouter() {
             }
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard"           element={<DashboardPage />}    />
-            <Route path="/productos"           element={<ProductosPage />}    />
-            <Route path="/ventas"              element={<VentasPage />}       />
-            <Route path="/ventas/mesa/:mesaId" element={<MesaPOSPage />}     />
-            <Route path="/compras"             element={<ComprasPage />}      />
-            <Route path="/kardex"              element={<KardexPage />}       />
-            <Route path="/auditoria"           element={<AuditoriaPage />}    />
-            <Route path="/empresa"             element={<EmpresaPage />}      />
-            <Route path="/configuracion"       element={<ConfiguracionPage />}/>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            
+            <Route
+              path="/productos"
+              element={
+                <ModuloGuard modulo="inventario" nombre="Catálogo e Inventario">
+                  <ProductosPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route
+              path="/ventas"
+              element={
+                <ModuloGuard modulo="pos" nombre="Punto de Venta y Facturación">
+                  <VentasPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route
+              path="/ventas/mesa/:mesaId"
+              element={
+                <ModuloGuard modulo="pos" nombre="Punto de Venta y Facturación">
+                  <MesaPOSPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route
+              path="/compras"
+              element={
+                <ModuloGuard modulo="compras" nombre="Gestión de Compras y Proveedores">
+                  <ComprasPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route
+              path="/kardex"
+              element={
+                <ModuloGuard modulo="kardex" nombre="Kardex de Movimientos">
+                  <KardexPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route
+              path="/auditoria"
+              element={
+                <ModuloGuard modulo="auditoria" nombre="Auditoría del Sistema">
+                  <AuditoriaPage />
+                </ModuloGuard>
+              }
+            />
+            
+            <Route path="/empresa" element={<EmpresaPage />} />
+            <Route path="/configuracion" element={<ConfiguracionPage />} />
+            <Route path="/control" element={<ControlPage />} />
           </Route>
 
           {/* Ruta fallback */}
